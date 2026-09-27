@@ -18,6 +18,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Fail fast when the Vercel deployment config can't match the app
+      # location (the Root Directory drift that broke production — see
+      # TESTING.md → Deployment). Dashboard checks activate when the
+      # VERCEL_TOKEN / VERCEL_PROJECT_ID secrets are configured; otherwise
+      # only repo-level checks run.
+      - name: Guard — Vercel config matches app location
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: node scripts/check-vercel-config.mjs --ci
+
       - uses: actions/setup-node@v4
         with:
           node-version: 24 # matches local dev (v24)
