@@ -112,12 +112,35 @@ or WASM modules, it likely needs the same `serverExternalPackages` treatment.
 
 Since the Addendum 17 monorepo restructure, the Next.js app lives in
 `apps/web`, not the repo root. Vercel's Project Settings must have
-**Root Directory = `apps/web`**; the committed
-`apps/web/vercel.json` makes the install step run `cd ../.. && npm ci`
-from the repo root so npm workspaces link `@nexus-office/*` and
-`@nexus/*` packages correctly before `next build` runs. **After any
-monorepo/workspace change, verify Vercel's Root Directory and build
-command still match the actual app location — this broke once already.**
+**Root Directory = `apps/web`** — set in the dashboard (Project →
+Settings → General → Root Directory) or via the API. **A `vercel.json`
+cannot set Root Directory.** The committed `apps/web/vercel.json` (read
+*only after* the dashboard Root Directory points at `apps/web`) makes
+the install step run `cd ../.. && npm ci` from the repo root so npm
+workspaces link `@nexus-office/*` and `@nexus/*` before `next build`.
+
+**Actual root cause of the three failed deploys after Addendum 17**
+(commits `113531a`, `e1ddfcf`, and their re-deploy): the dashboard
+Root Directory was still the repo root, so Vercel ran the root `build`
+script — which succeeds (`--workspace apps/web` → `next build` compiles
+cleanly) — but then collected output from `/vercel/path0/.next` at the
+repo root, where no `.next` exists anymore. Errors surfaced as
+`NEXT_NO_ROUTES_MANIFEST` ("`.next/routes-manifest.json` couldn't be
+found") and `NEXT_OUTPUT_DIR_MISSING` ("The Next.js output directory
+`.next` was not found") — **both *after* a successful compile**. An
+earlier fix commit (`e1ddfcf`) misdiagnosed this as an install/link
+problem and added `apps/web/vercel.json` believing it "pins Root
+Directory"; that file was silently ignored because the dashboard Root
+Directory never pointed at `apps/web`. Diagnostic rule of thumb:
+
+- Build fails with **"Module not found"** → dependencies/workspace
+  linking problem (install step, lockfile, gitignored package).
+- Build **compiles successfully**, then fails with
+  `NEXT_NO_ROUTES_MANIFEST` / `NEXT_OUTPUT_DIR_MISSING` → the build ran
+  in the wrong place: check the dashboard Root Directory, not deps.
+
+Set via API: `PATCH /v9/projects/<project-id>` with
+`{"rootDirectory": "apps/web"}`.
 
 ### Post-deploy verification
 
