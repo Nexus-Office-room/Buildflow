@@ -46,8 +46,9 @@ root — it delegates to `apps/web`), test account available.
 
 ## Deployment
 
-Checklist for every production deploy (Vercel). CI runs the same three gates
-(`tsc --noEmit`, `eslint`, `next build`) — keep them green before pushing.
+Checklist for every production deploy (Vercel). CI runs the Vercel config
+guard, then the same three gates (`tsc --noEmit`, `eslint`, `next build`) —
+keep them green before pushing.
 
 ### Required Vercel environment variables
 
@@ -69,13 +70,43 @@ breaks at runtime in production:
 | `NEXT_PUBLIC_NEXUS_URL` | optional | public app URL for branding/deep links |
 | `NEXUS_MOCK_LLM` / `NEXUS_MOCK_DEPLOY` | optional | dev escape hatches (set `=1`) |
 
-`SUPABASE_SERVICE_ROLE_KEY` is intentionally absent: no app code references
-it today (everything runs under the anon key + RLS). Don't add it to Vercel
-unless you also add server-side admin code that needs it.
+`SUPABASE_SERVICE_ROLE_KEY` is intentionally absent from Vercel: no app code
+references it (everything runs under the anon key + RLS). It exists in some
+local `.env.local` files and `.env.local.example` only for Supabase
+CLI/admin tasks — keep it off Vercel unless you also add server-side admin
+code that needs it.
 
-Note: `next build` itself does not need any env vars (pages fall back to
-`<SetupRequired />`), which is exactly why a missing-var failure only shows up
-after deploy — check them before pushing, not after.
+Verified against the running production project (2026-09-27): only six
+variables were configured — `NEXT_PUBLIC_SUPABASE_URL`,
+`NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXUS_ENCRYPTION_KEY`, `GOOGLE_API_KEY`,
+`NEXUS_MOCK_LLM`, `NEXUS_MOCK_DEPLOY`. Every LLM provider key in the table
+above (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GEMINI_API_KEY`,
+`XAI_API_KEY`, `OPENROUTER_API_KEY`, `CODEBUFF_API_KEY`), the
+`NEXUS_DEFAULT_*` free-tier trio, and `RESEND_API_KEY`/`FEEDBACK_EMAIL`
+were **not** set at that time — features that rely on them fall back or
+error at request time, so set the ones you actually use.
+
+**Production risk to resolve:** `NEXUS_MOCK_LLM` / `NEXUS_MOCK_DEPLOY` are
+dev escape hatches — `=1` makes pipeline runs return canned role-aware
+responses and deploys return fake deployment rows without touching any
+provider. They are currently present on the Production environment; verify
+their values are not `1` or delete them.
+
+`NEXUS_BASE_URL` is CLI-only (`apps/cli`): set it in the user's shell, not on
+Vercel — it overrides which web app the `nexus` command talks to (default
+`http://localhost:3000`).
+
+Note: `next build` runs with zero env vars — CI builds without any secrets,
+and every page guards on the Supabase env vars with `<SetupRequired />`
+fallbacks (confirmed at `/`, `/login`, `/projects`, `/explore`, `/prompts`).
+No `/api` route declares `export const dynamic`; they stay request-time
+because each reads cookies via the Supabase server client. If you add a
+statically prerendered route that touches Supabase, revisit this note.
+
+The "missing var only breaks after deploy" caveat in the table still
+applies to runtime routes: `next build` itself does not need env vars,
+which is exactly why a missing-var failure shows up after deploy, not
+before — check them before pushing.
 
 ### Supabase migrations
 
@@ -142,11 +173,37 @@ Directory never pointed at `apps/web`. Diagnostic rule of thumb:
 Set via API: `PATCH /v9/projects/<project-id>` with
 `{"rootDirectory": "apps/web"}`.
 
+### Pre-push guard: Vercel config matches app location
+
+`npm run check:vercel` — also wired as a pre-push git hook (the root
+`prepare` script sets `core.hooksPath` to `.githooks`) and as the first CI
+step — fails when the Vercel deployment config cannot match the app
+location:
+
+- **Tier 1 (always runs):** detects the Next.js app under `apps/`, checks
+  `apps/web/vercel.json` (framework pinned to `nextjs`, install command
+  installs from the workspace root), workspace globs, and lockfile
+  presence.
+- **Tier 2 (needs `VERCEL_TOKEN` + `VERCEL_PROJECT_ID`):** reads the live
+  project settings and **fails on a Root Directory mismatch** — the only
+  check that catches the drift that broke production three times. An
+  unreachable/ unauthorized dashboard fails *open* (warning) so local
+  pushes still work; pass `--strict` to fail closed.
+
+To activate tier 2 in CI, add `VERCEL_TOKEN` (read-scope token, short
+expiry) and `VERCEL_PROJECT_ID` (`prj_Otwd27uVSYGB2vukQD9zJzOQYAEt`) as
+GitHub Actions secrets. Never paste tokens into chat or commit them.
+
 ### Post-deploy verification
 
 - [ ] Vercel deployment shows "Ready", not "Error"
 - [ ] The deployed URL actually loads (login page renders, not a 500)
 - [ ] One authenticated flow works end-to-end (e.g. send a chat message)
+
+Last pass: 2026-09-27, deploy `dpl_2Pv7JxaAhdwWTpNmfQ6wVXXhPRck` — Ready;
+`/login` returns 200 with real markup; `/api/config` returns the Supabase
+URL + anon key; unauthenticated `/api/projects` returns `[]`. The
+authenticated-flow checkbox still needs a human pass with a test account.
 
 ---
 
@@ -155,13 +212,19 @@ Set via API: `PATCH /v9/projects/<project-id>` with
 These checklist items exercise features that are not fully built yet — mark
 them as "blocked" rather than "fail" until the relevant addendum lands:
 
-- **Sign up with GitHub** — auth is email/password (Supabase) only; no OAuth
-  providers configured yet. Duplicate-account prevention for matching emails
-  is Supabase auth behavior once GitHub OAuth is added.
-- **Approval-gating modal** — not built. Deploys trigger immediately from
-  Deploy Desk; history is tracked per deploy row.
-- **Audit Log** — not built as a dedicated page. Decision history lives in the
-  Memory Board; full per-role run history is in the pipeline run records.
+- **Sign up with GitHub** — *implemented* (audit correction, 2026-09-27):
+  the login page offers "Continue with GitHub", `/auth/callback` exchanges
+  the code and stores the provider token as the user's "github" connection
+  for Deploy Desk. Requires the Supabase GitHub OAuth provider to be
+  configured for the project; duplicate-account handling for matching
+  emails follows Supabase auth behavior.
+- ~~**Approval-gating modal** — not built~~ — *implemented* (audit
+  correction): per-project `require_merge_approval` setting,
+  per-file diff review with Approve/Discard before merge.
+- **Audit Log** — implemented as a project-workspace panel
+  (`src/components/governance/AuditLog.tsx`, rendered inside
+  OfficeWorkspace), not a standalone page; full per-role run history also
+  lives in the pipeline run records.
 - **"Commits to GitHub" from Code Canvas edits** — GitHub push happens via
   Deploy Desk ("Deploy Now"), not automatically on file save.
 - **Bundled/managed AI credits** — Pro tier ships with bring-your-own keys;
