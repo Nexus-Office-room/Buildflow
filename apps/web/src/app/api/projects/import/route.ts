@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { getDecryptedApiKey } from "@/lib/apiKeys";
+import { getDecryptedApiKeyDetailed } from "@/lib/apiKeys";
+import {
+  githubTokenErrorResponse,
+  logGitHubTokenState,
+  resolveGitHubTokenError,
+} from "@/lib/githubToken";
 import {
   getDefaultBranchHeadSha,
   getFileContentAtRef,
@@ -29,16 +34,24 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "repo must be in owner/name form" }, { status: 400 });
   }
 
-  const token = await getDecryptedApiKey(supabase, user.id, "github");
-  if (!token) return NextResponse.json({ error: "RECONNECT_GITHUB" }, { status: 401 });
+  const tokenRead = await getDecryptedApiKeyDetailed(supabase, user.id, "github");
+  if (tokenRead.state !== "ok") {
+    logGitHubTokenState("POST /api/projects/import", user.id, tokenRead.state);
+    return githubTokenErrorResponse(resolveGitHubTokenError(tokenRead.state));
+  }
+  const token = tokenRead.value;
 
   // Guard: the token must actually be able to see this repo.
   const [owner] = repo.split("/");
   let owners: string[] = [];
   try {
     owners = (await listOwners(token)).map((o) => o.login);
-  } catch {
-    return NextResponse.json({ error: "RECONNECT_GITHUB" }, { status: 401 });
+  } catch (err) {
+    console.error(`[github-token] POST /api/projects/import: listOwners failed:`, err);
+    return NextResponse.json(
+      { error: "Could not verify repo access with your GitHub token — try again shortly." },
+      { status: 502 }
+    );
   }
 
   let visible = false;

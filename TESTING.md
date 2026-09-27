@@ -173,6 +173,32 @@ Directory never pointed at `apps/web`. Diagnostic rule of thumb:
 Set via API: `PATCH /v9/projects/<project-id>` with
 `{"rootDirectory": "apps/web"}`.
 
+### GitHub token errors — test refresh/reconnect specifically
+
+**Test GitHub token refresh/reconnect specifically — token-state confusion
+has caused the "Your GitHub connection is missing or expired" error to
+regress once already** (repo picker, Deploy Desk). This app stores classic
+GitHub **OAuth** tokens via Supabase (`provider_token` at `/auth/callback`);
+they do **not** expire on a timer and there is no GitHub App / refresh-token
+flow, so "expired" is never the real state. The states that actually occur,
+and their fixes:
+
+| State | Symptom | Fix |
+| --- | --- | --- |
+| Not connected (no token row) | picker shows "GitHub isn't connected" + one-click Connect button | OAuth connect (`/api/auth/github?next=…`) |
+| Token rejected / scope insufficient (GitHub 401 / non-rate-limit 403) | "GitHub rejected your saved token" + Connect button | Reconnect via OAuth |
+| **Token undecryptable** (vault row exists, GCM auth fails — `NEXUS_ENCRYPTION_KEY` changed/missing) | "stored but cannot be read by the server" — explicitly NOT a reconnect prompt | Re-save the GitHub token (Config → Connections); check the server key |
+| **Rate limited** (GitHub 403 "rate limit exceeded") | "GitHub API rate limit hit — try again" (sky-blue), list untouched | Wait; reconnecting does nothing |
+
+Rate limits and undecryptable tokens were previously conflated with
+"reconnect" (any 401/403 → `RECONNECT_GITHUB`), and the OAuth callback used
+to swallow token-storage failures silently — both now log the real cause
+server-side (`[github-token] …`) and surface distinct UI states. When
+testing: connect GitHub, revoke the token from github.com/settings/apps to
+simulate rejection (picker must offer Connect, and completing it must land
+you back on the picker), and verify Anchorage/Receiptor-style project cards
+are never hidden by picker errors (they come from the DB, not the token).
+
 ### Pre-push guard: Vercel config matches app location
 
 `npm run check:vercel` — also wired as a pre-push git hook (the root

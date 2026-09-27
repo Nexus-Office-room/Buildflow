@@ -25,7 +25,29 @@ interface RepoSummary {
   updatedAt: string;
 }
 
-type ErrorState = { kind: "reconnect" } | { kind: "message"; message: string };
+type ErrorState =
+  | { kind: "reconnect"; reason: "not_connected" | "token_unreadable" | "unauthorized" | "insufficient_scope" }
+  | { kind: "rate_limited"; message: string }
+  | { kind: "message"; message: string };
+
+// Normalizes the various error shapes the API can return into the UI states
+// above. RECONNECT_GITHUB now carries a `reason` distinguishing "never
+// connected" from "stored token unreadable (server-side)" from "GitHub
+// rejected the token / scope insufficient" — the recurring "missing or
+// expired" report collapsed all of these into one misleading message.
+function toErrorState(payload: { error?: string; reason?: string; message?: string } | null | undefined): ErrorState {
+  if (payload?.error === "GITHUB_RATE_LIMITED") {
+    return { kind: "rate_limited", message: payload.message ?? "GitHub API rate limit hit — try again in a minute." };
+  }
+  if (payload?.error === "RECONNECT_GITHUB") {
+    const reason =
+      payload.reason === "token_unreadable" || payload.reason === "insufficient_scope" || payload.reason === "unauthorized"
+        ? payload.reason
+        : "not_connected";
+    return { kind: "reconnect", reason };
+  }
+  return { kind: "message", message: payload?.error ?? payload?.message ?? "Failed to list repos" };
+}
 
 export default function RepoImportPicker() {
   const router = useRouter();
@@ -44,13 +66,11 @@ export default function RepoImportPicker() {
       const { data } = await nexus.client.request<{
         repos?: RepoSummary[];
         error?: string;
+        reason?: string;
+        message?: string;
       }>("GET", `/api/github/owners?owner=${encodeURIComponent(owner)}`);
       if (!data || data.error) {
-        setError(
-          data?.error === "RECONNECT_GITHUB"
-            ? { kind: "reconnect" }
-            : { kind: "message", message: data?.error ?? "Failed to list repos" }
-        );
+        setError(toErrorState(data));
       } else {
         setRepos(data.repos ?? []);
       }
@@ -67,13 +87,11 @@ export default function RepoImportPicker() {
         owners?: Owner[];
         activeOwner?: string;
         error?: string;
+        reason?: string;
+        message?: string;
       }>("GET", "/api/github/owners");
       if (!data || data.error) {
-        setError(
-          data?.error === "RECONNECT_GITHUB"
-            ? { kind: "reconnect" }
-            : { kind: "message", message: data?.error ?? "Failed to list accounts" }
-        );
+        setError(toErrorState(data));
         setLoading(false);
         return;
       }
@@ -199,8 +217,44 @@ export default function RepoImportPicker() {
 
       {error?.kind === "reconnect" && (
         <div className="mt-3 rounded bg-amber-600/10 p-2 text-xs text-amber-300">
-          Your GitHub connection is missing or expired. Reconnect from Settings →
-          Connections (or sign out and back in with GitHub) to pick a repo.
+          {error.reason === "token_unreadable" ? (
+            <>
+              <p className="font-medium">Your GitHub token is stored but cannot be read by the server.</p>
+              <p className="mt-1">
+                This is a server-side configuration issue (encryption key changed), not a
+                disconnected account — reconnecting won&apos;t fix it. Re-saving the GitHub token in
+                Config → Connections will restore it.
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="font-medium">
+                {error.reason === "insufficient_scope"
+                  ? "Your GitHub token lacks the required permissions."
+                  : error.reason === "unauthorized"
+                    ? "GitHub rejected your saved token."
+                    : "GitHub isn't connected to your account yet."}
+              </p>
+              <p className="mt-1">
+                {error.reason === "not_connected"
+                  ? "Connect GitHub — it takes one click and returns you right here."
+                  : "Reconnect with GitHub — it takes one click and returns you right here."}
+              </p>
+              <a
+                href={`/api/auth/github?next=${encodeURIComponent(
+                  typeof window !== "undefined" ? window.location.pathname + window.location.search : "/projects"
+                )}`}
+                className="mt-2 inline-block rounded bg-amber-500/20 px-2 py-1 font-medium text-amber-200 hover:bg-amber-500/30"
+              >
+                Connect GitHub ↗
+              </a>
+            </>
+          )}
+        </div>
+      )}
+      {error?.kind === "rate_limited" && (
+        <div className="mt-3 rounded bg-sky-600/10 p-2 text-xs text-sky-300">
+          {error.message} The repo list below is untouched — no reconnect needed.
         </div>
       )}
     </div>

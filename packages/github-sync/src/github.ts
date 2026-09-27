@@ -10,6 +10,40 @@ export interface PushResult {
   branch: string;
 }
 
+// Typed GitHub API failure. The message still embeds the status code so any
+// legacy `\/(401|403)\/.test(err.message)` call site keeps working unchanged,
+// but `instanceof GitHubError` gives routes a reliable way to distinguish
+// "token rejected / insufficient scope" (reconnect fixes it) from rate
+// limits and transient failures (reconnect cannot fix them — it never
+// could; that conflation caused the recurring "missing or expired" report).
+export class GitHubError extends Error {
+  readonly status: number;
+  // "unauthorized"  → 401: token rejected/revoked → reconnect is correct
+  // "scope"         → 403: token valid but lacks permission → reconnect with broader scopes
+  // "rate_limited"  → 403/429 with X-RateLimit-Remaining: 0 → retry, do NOT reconnect
+  // "not_found"     → 404: resource absent — auth is fine
+  // "other"         → anything else (5xx, network shapes, unexpected)
+  readonly reason: "unauthorized" | "scope" | "rate_limited" | "not_found" | "other";
+
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = "GitHubError";
+    this.status = status;
+    this.reason = GitHubError.classify(status, message);
+  }
+
+  static classify(status: number, message: string): GitHubError["reason"] {
+    if (status === 401) return "unauthorized";
+    if (status === 404) return "not_found";
+    if (status === 403 || status === 429) {
+      // GitHub returns 403 (sometimes 429) with a "rate limit exceeded" body
+      // when the rate limit is the problem; other 403s are permission/scope.
+      return message.toLowerCase().includes("rate limit") ? "rate_limited" : "scope";
+    }
+    return "other";
+  }
+}
+
 // Addendum 9: explicit commit authorship — commits are attributed to the
 // user's display name instead of the token's default. Email uses GitHub's
 // canonical noreply format (id+login) so attribution links to their account
@@ -43,7 +77,7 @@ async function gh(token: string, path: string, init?: RequestInit): Promise<any>
   });
   if (!res.ok) {
     const body = await res.text().catch(() => "");
-    throw new Error(`GitHub API ${init?.method ?? "GET"} ${path} failed: ${res.status} ${body}`);
+    throw new GitHubError(res.status, `GitHub API ${init?.method ?? "GET"} ${path} failed: ${res.status} ${body}`);
   }
   return res.status === 204 ? null : res.json();
 }

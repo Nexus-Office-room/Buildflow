@@ -34,17 +34,20 @@ export async function GET(request: Request) {
 
   // GitHub OAuth sign-ins carry the user's own GitHub access token in the
   // session — store it as their "github" connection so Deploy Desk's
-  // Save to GitHub works immediately, with no separate PAT needed. Only
-  // present for OAuth logins (not email/password), and only overwrites
-  // what's there if GitHub actually returned a token this time.
+  // Save to GitHub and the repo picker work immediately, with no separate
+  // PAT needed. Only present for OAuth logins (not email/password), and only
+  // overwrites what's there if GitHub actually returned a token this time.
+  //
+  // Storage failures are NO LONGER swallowed silently: a token that was
+  // exchanged but never persisted produces exactly the recurring
+  // "Your GitHub connection is missing or expired" report — the user did
+  // everything right, the server just dropped the token. The user is sent
+  // to /projects with a banner naming the real problem and the fix.
   const providerToken = data.session.provider_token;
   if (providerToken && data.user) {
     try {
-      // Secrets vault is the source of truth for the token now.
       await setUserProviderKey(supabase, data.user.id, "github", providerToken);
       // Legacy mirror keeps pre-vault readers working during transition.
-      // Wrapped in its own try/catch so a failed mirror (e.g. constraint
-      // mismatch on older migrations) doesn't block the session redirect.
       try {
         await supabase.from("api_keys").upsert(
           {
@@ -54,13 +57,21 @@ export async function GET(request: Request) {
           },
           { onConflict: "user_id,provider" }
         );
-      } catch {
-        // vault already has the token; legacy mirror failure is non-fatal
+      } catch (mirrorError) {
+        // Non-fatal: the vault (written above) is the source of truth.
+        console.error(
+          "[github-token] /auth/callback: legacy api_keys mirror failed:",
+          mirrorError
+        );
       }
-    } catch {
-      // Non-fatal — the user can still add a GitHub token manually via
-      // Settings -> Connections if this silently fails (e.g. missing
-      // NEXUS_ENCRYPTION_KEY in this environment).
+    } catch (storeError) {
+      console.error(
+        "[github-token] /auth/callback: FAILED to store GitHub provider token:",
+        storeError
+      );
+      const redirect = new URL(`${origin}${next.startsWith("/") && !next.startsWith("//") ? next : "/projects"}`);
+      redirect.searchParams.set("github_token_error", "store_failed");
+      return NextResponse.redirect(redirect);
     }
   }
 

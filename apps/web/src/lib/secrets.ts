@@ -75,6 +75,38 @@ export async function getSecret(
   }
 }
 
+export type SecretState = "ok" | "missing" | "undecryptable";
+
+// Discriminated union so `read.state !== "ok"` narrows `value` to null and
+// `read.state === "ok"` narrows it to string — routes get real type safety
+// on the not-connected / undecryptable guard instead of a `string | null`.
+export type SecretRead =
+  | { state: "ok"; value: string }
+  | { state: "missing" | "undecryptable"; value: null };
+
+// Detailed read that distinguishes the three real states instead of folding
+// them into one null. "Undecryptable" (the stored ciphertext fails its GCM
+// auth tag — typically because NEXUS_ENCRYPTION_KEY changed since the value
+// was written) must NOT be presented to users as "not connected": the fix is
+// re-entering the key, not reconnecting an OAuth flow that was never broken.
+export async function getSecretDetailed(
+  supabase: SupabaseClient,
+  ref: SecretRef
+): Promise<SecretRead> {
+  const { data, error } = await supabase
+    .from("secrets")
+    .select("encrypted_value")
+    .match({ owner_type: ref.ownerType, owner_id: ref.ownerId, key_name: ref.keyName })
+    .maybeSingle();
+
+  if (error || !data?.encrypted_value) return { state: "missing", value: null };
+  try {
+    return { state: "ok", value: decryptSecret(data.encrypted_value) };
+  } catch {
+    return { state: "undecryptable", value: null };
+  }
+}
+
 // Vault read with a legacy-column fallback that migrates into the vault
 // on success. `readLegacy` returns the plaintext from the old storage (or
 // null); it is only called when the vault has no entry.
@@ -120,6 +152,41 @@ export async function getUserProviderKey(
       return null;
     }
   });
+}
+
+// Same lookup as getUserProviderKey but reports WHICH failure happened:
+// "missing" (never connected) vs "undecryptable" (stored ciphertext fails
+// its auth tag — server-side key problem, not a user action item). Routes
+// use this to stop telling users with broken server config to "reconnect".
+export async function getUserProviderKeyDetailed(
+  supabase: SupabaseClient,
+  userId: string,
+  provider: string
+): Promise<SecretRead> {
+  const ref = userSecretRef(userId, `key:${provider}`);
+  const fromVault = await getSecretDetailed(supabase, ref);
+  if (fromVault.state === "ok") return fromVault;
+
+  // Vault has nothing usable — check the legacy column before concluding.
+  const { data } = await supabase
+    .from("api_keys")
+    .select("encrypted_key")
+    .eq("user_id", userId)
+    .eq("provider", provider)
+    .maybeSingle();
+  if (!data?.encrypted_key) return fromVault.state === "undecryptable" ? fromVault : { state: "missing", value: null };
+  try {
+    const legacy = decryptSecret(data.encrypted_key);
+    // Migration-on-read, mirroring getSecretWithLegacy. Best-effort.
+    try {
+      await setSecret(supabase, ref, legacy);
+    } catch {
+      // legacy value remains usable
+    }
+    return { state: "ok", value: legacy };
+  } catch {
+    return { state: "undecryptable", value: null };
+  }
 }
 
 export async function setUserProviderKey(

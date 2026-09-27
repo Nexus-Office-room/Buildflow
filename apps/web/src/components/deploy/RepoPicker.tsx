@@ -218,20 +218,20 @@ function ReconnectHint({ onReconnect, onClose }: { onReconnect?: () => void; onC
   if (onReconnect) {
     return (
       <div className="rounded bg-amber-600/10 p-2 text-xs text-amber-300">
-        Your GitHub connection is missing or expired.{" "}
+        GitHub isn&apos;t connected — or the saved token was rejected.{" "}
         <button
           onClick={onReconnect}
           className="font-medium underline decoration-dotted underline-offset-1"
         >
           Reconnect GitHub
         </button>{" "}
-        — this will open the GitHub OAuth flow and resume right here once done.
+        — this opens the GitHub OAuth flow and resumes right here once done.
       </div>
     );
   }
   return (
     <div className="rounded bg-amber-600/10 p-2 text-xs text-amber-300">
-      Your GitHub connection is missing or expired. Reconnect from Deploy Desk&apos;s
+      GitHub isn&apos;t connected to your account yet. Reconnect from Deploy Desk&apos;s
       Save to GitHub panel first.{" "}
       <button onClick={onClose} className="underline">
         Close picker

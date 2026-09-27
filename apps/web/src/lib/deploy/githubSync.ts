@@ -8,6 +8,7 @@ import {
 } from "./github";
 import { getDecryptedApiKey } from "@/lib/apiKeys";
 import { getOrCreateProfile } from "@/lib/profile";
+import { classifyGitHubCallError } from "@/lib/githubToken";
 
 export interface SyncConflict {
   path: string;
@@ -65,8 +66,15 @@ export async function planGitHubSync(
     branch = head.branch;
     headSha = head.sha ?? "";
   } catch (err) {
-    if (err instanceof Error && /401|403/.test(err.message)) {
+    // Reconnect only for failures reconnecting can fix (token rejected or
+    // scope insufficient). Rate limits get their own actionable message —
+    // misreporting them as "reconnect GitHub" was the recurring bug.
+    const kind = classifyGitHubCallError(err);
+    if (kind === "unauthorized" || kind === "scope") {
       throw new Error("RECONNECT_GITHUB");
+    }
+    if (kind === "rate_limited") {
+      throw new Error("GITHUB_RATE_LIMITED: GitHub API rate limit hit — try again shortly.");
     }
     throw err;
   }

@@ -151,7 +151,7 @@ export default function SaveToGitHub({
 
         {status.kind === "reconnect" && (
           <div className="rounded bg-amber-600/10 p-2 text-xs text-amber-300">
-            Your GitHub connection is missing or expired.{" "}
+            GitHub isn&apos;t connected — or the saved token was rejected.{" "}
             <button onClick={handleReconnect} className="font-medium underline">
               Reconnect GitHub
             </button>

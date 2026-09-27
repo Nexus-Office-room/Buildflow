@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { getDecryptedApiKey } from "@/lib/apiKeys";
+import { getDecryptedApiKeyDetailed } from "@/lib/apiKeys";
 import { listOwnerRepos, listOwners, createUserRepo } from "@/lib/deploy/github";
+import {
+  classifyGitHubCallError,
+  githubTokenErrorResponse,
+  logGitHubTokenState,
+  resolveGitHubTokenError,
+} from "@/lib/githubToken";
 
 // Addendum 9: supports ?owner=<login> — the personal login lists the user's
 // own repos, an org login lists that org's repos. No owner = all personal
@@ -13,10 +19,12 @@ export async function GET(req: Request) {
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const token = await getDecryptedApiKey(supabase, user.id, "github");
-  if (!token) {
-    return NextResponse.json({ error: "RECONNECT_GITHUB" }, { status: 401 });
+  const tokenRead = await getDecryptedApiKeyDetailed(supabase, user.id, "github");
+  if (tokenRead.state !== "ok") {
+    logGitHubTokenState("GET /api/projects/[id]/github/repos", user.id, tokenRead.state);
+    return githubTokenErrorResponse(resolveGitHubTokenError(tokenRead.state));
   }
+  const token = tokenRead.value;
 
   try {
     const requested = new URL(req.url).searchParams.get("owner");
@@ -32,12 +40,25 @@ export async function GET(req: Request) {
     }
     return NextResponse.json({ repos });
   } catch (err) {
+    console.error(`[github-token] GET /api/projects/[id]/github/repos: GitHub call failed:`, err);
+    const kind = classifyGitHubCallError(err);
+    if (kind === "rate_limited") {
+      return NextResponse.json(
+        { error: "GITHUB_RATE_LIMITED", message: "GitHub API rate limit hit — try again in a minute." },
+        { status: 429 }
+      );
+    }
+    if (kind === "unauthorized" || kind === "scope") {
+      return NextResponse.json(
+        {
+          error: "RECONNECT_GITHUB",
+          reason: kind === "scope" ? "insufficient_scope" : "unauthorized",
+        },
+        { status: 401 }
+      );
+    }
     const message = err instanceof Error ? err.message : "Failed to list repos";
-    const status = /401|403/.test(message) ? 401 : 500;
-    return NextResponse.json(
-      { error: status === 401 ? "RECONNECT_GITHUB" : message },
-      { status }
-    );
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -59,10 +80,12 @@ export async function POST(
   const isPrivate = Boolean(body?.private);
   if (!name) return NextResponse.json({ error: "name is required" }, { status: 400 });
 
-  const token = await getDecryptedApiKey(supabase, user.id, "github");
-  if (!token) {
-    return NextResponse.json({ error: "RECONNECT_GITHUB" }, { status: 401 });
+  const tokenRead = await getDecryptedApiKeyDetailed(supabase, user.id, "github");
+  if (tokenRead.state !== "ok") {
+    logGitHubTokenState("POST /api/projects/[id]/github/repos", user.id, tokenRead.state);
+    return githubTokenErrorResponse(resolveGitHubTokenError(tokenRead.state));
   }
+  const token = tokenRead.value;
 
   try {
     const owner = typeof body?.owner === "string" ? body.owner.trim() : "";
