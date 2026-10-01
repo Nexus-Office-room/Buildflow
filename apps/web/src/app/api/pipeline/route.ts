@@ -1,4 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  getRequestIdentity,
+  requireScopeForRequest,
+  apiTokenErrorResponse,
+  auditAttribution,
+} from "@/lib/requestIdentity";
 import { runPipeline, type PipelineStepResult } from "@/lib/pipeline/run";
 import { perfTimer } from "@/lib/perf";
 import { checkAndConsumeSharedRun, monthlyLimit } from "@/lib/shared-ai";
@@ -7,11 +14,18 @@ import { checkAndConsumeSharedRun, monthlyLimit } from "@/lib/shared-ai";
 // so the chat UI can render cards in sequence instead of waiting for the
 // whole pipeline to finish.
 export async function POST(req: Request) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+  // Dual auth: browser session or Nexus API token (pipeline:run scope).
+  const auth = await getRequestIdentity(req);
+  if ("response" in auth) return auth.response;
+  try {
+    requireScopeForRequest(auth.identity, "pipeline:run");
+  } catch (err) {
+    const safe = apiTokenErrorResponse(err);
+    if (safe) return safe;
+    throw err;
+  }
+  const user = { id: auth.identity.userId };
+  const supabase = auth.identity.token ? createAdminClient() : await createClient();
 
   const body = await req.json().catch(() => null);
   const projectId = typeof body?.projectId === "string" ? body.projectId : "";
@@ -32,6 +46,19 @@ export async function POST(req: Request) {
 
   if (!project) {
     return new Response(JSON.stringify({ error: "Project not found" }), { status: 404 });
+  }
+
+  // Phase 10: audit-attribute API-token-initiated runs (the pipeline itself
+  // logs per-role events as usual). Safe metadata only — never the token.
+  if (auth.identity.token) {
+    await supabase.from("audit_events").insert({
+      project_id: projectId,
+      user_id: user.id,
+      actor: "user",
+      action: "pipeline.api_run",
+      target: null,
+      metadata: { via: auditAttribution(auth.identity) },
+    });
   }
 
   // Free-tier gate (Phase 3/4): if this run will draw on Nexus Office's

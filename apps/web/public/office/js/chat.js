@@ -7,12 +7,8 @@ import { runPipeline } from "./api.js";
 import { showToast } from "./toast.js";
 import { esc } from "./util.js";
 
-const SHORT_SEQUENCE = ["strategist", "ops"];
-const FULL_SEQUENCE = ROLES;
-
 // Client-side mirrors of the server's memory.ts block parsing, so displayed
-// cards don't show raw JSON blocks and the relay sequence is known the
-// moment the Strategist's step lands.
+// cards don't show raw JSON blocks.
 const MEMORY_BLOCK_RE = /```memory-update\s*([\s\S]*?)```/;
 const STRATEGIST_BLOCK_RE = /```strategist\s*([\s\S]*?)```/;
 
@@ -21,15 +17,6 @@ function stripMemoryBlock(text) {
 }
 function stripStrategistBlock(text) {
   return text.replace(STRATEGIST_BLOCK_RE, "").trim();
-}
-function parseStrategistOutput(text) {
-  const match = text.match(STRATEGIST_BLOCK_RE);
-  if (!match) return { needsFullPipeline: true };
-  try {
-    return { needsFullPipeline: Boolean(JSON.parse(match[1].trim()).needs_full_pipeline) };
-  } catch {
-    return { needsFullPipeline: true };
-  }
 }
 
 export function createChatPane(container, { onFilesWritten }) {
@@ -180,7 +167,7 @@ export function createChatPane(container, { onFilesWritten }) {
           nodes[activeIndex].classList.add("done");
         }
         // If the run took the short path, dim the roles that never ran.
-        nodes.forEach((n, i) => {
+        nodes.forEach((n) => {
           if (!n.classList.contains("done") && !n.classList.contains("failed")) {
             n.style.opacity = "0.25";
           }

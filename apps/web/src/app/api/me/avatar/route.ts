@@ -26,7 +26,7 @@ export async function PUT(req: Request) {
   return NextResponse.json({ avatarUrl });
 }
 
-export async function DELETE(req: Request) {
+export async function DELETE() {
   const supabase = await createClient();
   const {
     data: { user },

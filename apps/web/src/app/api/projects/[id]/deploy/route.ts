@@ -1,5 +1,12 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  getRequestIdentity,
+  requireScopeForRequest,
+  apiTokenErrorResponse,
+  auditAttribution,
+} from "@/lib/requestIdentity";
 import { startDeploy } from "@/lib/deploy/run";
 import { getRequireApproval, assertCapability, CapabilityError } from "@/lib/capabilities";
 import { logAudit } from "@/lib/audit";
@@ -13,11 +20,18 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  // Dual auth: browser session or Nexus API token (deploy:trigger scope).
+  const auth = await getRequestIdentity(req);
+  if ("response" in auth) return auth.response;
+  try {
+    requireScopeForRequest(auth.identity, "deploy:trigger");
+  } catch (err) {
+    const safe = apiTokenErrorResponse(err);
+    if (safe) return safe;
+    throw err;
+  }
+  const user = { id: auth.identity.userId };
+  const supabase = auth.identity.token ? createAdminClient() : await createClient();
 
   const body = await req.json().catch(() => ({}));
   const hostingIntegrationId =
@@ -110,6 +124,7 @@ export async function POST(
         deployId: deploy?.id ?? null,
         commitSha: deploy?.github_commit_sha ?? null,
         hostingIntegrationId: hostingIntegrationId ?? null,
+        via: auditAttribution(auth.identity),
       },
     });
 

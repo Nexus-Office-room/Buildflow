@@ -13,6 +13,7 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "cli": "npm run dev --workspace @nexus-office/cli",
     "assets": "npm run assets --workspace apps/web",
+    "test": "node --experimental-strip-types --import ./tests/register-loader.mjs --test \"tests/*.test.mjs\"",
     "check:vercel": "node scripts/check-vercel-config.mjs",
     "prepare": "node scripts/setup-hooks.mjs"
   },

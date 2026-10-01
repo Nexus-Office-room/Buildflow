@@ -13,7 +13,6 @@ export type PerfReporter = (mark: PerfMark) => void;
 const reporters: PerfReporter[] = [
   (mark) => {
     if (process.env.NODE_ENV === "development") {
-      // eslint-disable-next-line no-console
       console.log(`[perf] ${mark.label}: ${mark.durationMs}ms`);
     }
   },

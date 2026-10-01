@@ -1,5 +1,12 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  getRequestIdentity,
+  requireScopeForRequest,
+  apiTokenErrorResponse,
+  type RequestIdentity,
+} from "@/lib/requestIdentity";
 import { getDecryptedApiKey } from "@/lib/apiKeys";
 import { getOrCreateProfile } from "@/lib/profile";
 import {
@@ -11,13 +18,26 @@ import {
   migrateLegacyMarkdownPrompts,
 } from "@/lib/prompts/vault";
 
+// Resolves the Supabase client: session client (RLS) for the browser,
+// service-role client for API-token requests (queries filter by user_id).
+async function scopedClient(identity: RequestIdentity) {
+  if (identity.token) return createAdminClient();
+  return createClient();
+}
+
 // GET /api/prompts?q=search+text&tag=some-tag
 export async function GET(req: Request) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const auth = await getRequestIdentity(req);
+  if ("response" in auth) return auth.response;
+  try {
+    requireScopeForRequest(auth.identity, "vault:read");
+  } catch (err) {
+    const safe = apiTokenErrorResponse(err);
+    if (safe) return safe;
+    throw err;
+  }
+  const userId = auth.identity.userId;
+  const supabase = await scopedClient(auth.identity);
 
   const { searchParams } = new URL(req.url);
   const q = searchParams.get("q")?.trim();
@@ -26,6 +46,7 @@ export async function GET(req: Request) {
   let query = supabase
     .from("prompts")
     .select("*")
+    .eq("user_id", userId)
     .order("updated_at", { ascending: false });
 
   if (q) {
@@ -122,11 +143,17 @@ async function syncPromptToVault(args: {
 
 // Body: { title: string, body: string, tags?: string[], visibility?: 'private' | 'public' }
 export async function POST(req: Request) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const auth = await getRequestIdentity(req);
+  if ("response" in auth) return auth.response;
+  try {
+    requireScopeForRequest(auth.identity, "vault:write");
+  } catch (err) {
+    const safe = apiTokenErrorResponse(err);
+    if (safe) return safe;
+    throw err;
+  }
+  const user = { id: auth.identity.userId };
+  const supabase = await scopedClient(auth.identity);
 
   const payload = await req.json().catch(() => null);
   const title = typeof payload?.title === "string" ? payload.title.trim() : "";

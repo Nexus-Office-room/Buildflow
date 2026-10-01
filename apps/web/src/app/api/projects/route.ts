@@ -1,15 +1,32 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { getRequestIdentity, requireScopeForRequest, apiTokenErrorResponse, type RequestIdentity } from "@/lib/requestIdentity";
 import { DEFAULT_PROVIDER_CONFIG } from "@/lib/providers";
 import { ROLES } from "@/types/db";
 
-export async function GET() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+// Resolves the Supabase client for the request: session-cookie client for the
+// browser (RLS applies) or the service-role client for API-token requests
+// (RLS is bypassed, so every query below filters by the token's user_id —
+// see lib/requestIdentity). Keeping one client per request preserves all
+// existing session behavior exactly.
+async function scopedClient(identity: RequestIdentity) {
+  if (identity.token) return createAdminClient();
+  return createClient();
+}
 
+export async function GET(req: Request) {
+  // Dual auth: browser session or Nexus API token (projects:read).
+  const auth = await getRequestIdentity(req);
+  if ("response" in auth) return auth.response;
+  try {
+    requireScopeForRequest(auth.identity, "projects:read");
+  } catch (err) {
+    const safe = apiTokenErrorResponse(err);
+    if (safe) return safe;
+    throw err;
+  }
+  const supabase = await scopedClient(auth.identity);
   const { data, error } = await supabase
     .from("projects")
     .select("*")
@@ -20,11 +37,17 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const auth = await getRequestIdentity(req);
+  if ("response" in auth) return auth.response;
+  try {
+    requireScopeForRequest(auth.identity, "projects:read");
+  } catch (err) {
+    const safe = apiTokenErrorResponse(err);
+    if (safe) return safe;
+    throw err;
+  }
+  const userId = auth.identity.userId;
+  const supabase = await scopedClient(auth.identity);
 
   const body = await req.json().catch(() => null);
   const name = typeof body?.name === "string" ? body.name.trim() : "";
@@ -32,7 +55,7 @@ export async function POST(req: Request) {
 
   const { data: project, error } = await supabase
     .from("projects")
-    .insert({ name, user_id: user.id })
+    .insert({ name, user_id: userId })
     .select()
     .single();
 
