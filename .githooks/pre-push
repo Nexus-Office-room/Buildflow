@@ -1,5 +1,10 @@
 #!/bin/sh
-# Pre-push guard: refuse the push when the Vercel deployment config can't
+# Pre-push guard 1: refuse the push when a workspace package lost its manifest
+# or sources (the Addendum-15-rebase failure mode that surfaced as a blocked
+# production deploy three commits later). Same check CI runs.
+node scripts/check-workspaces.mjs || exit 1
+
+# Pre-push guard 2: refuse the push when the Vercel deployment config can't
 # match the app location. This is the guard for the Root Directory drift that
 # broke production after the Addendum 17 monorepo move (see TESTING.md →
 # Deployment → "Vercel Root Directory / workspace build (monorepo)").

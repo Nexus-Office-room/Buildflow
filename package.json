@@ -15,6 +15,7 @@
     "assets": "npm run assets --workspace apps/web",
     "test": "node --experimental-strip-types --import ./tests/register-loader.mjs --test \"tests/*.test.mjs\"",
     "test:e2e": "node tests/e2e-token-flow.mjs",
+    "check:workspaces": "node scripts/check-workspaces.mjs",
     "check:vercel": "node scripts/check-vercel-config.mjs",
     "prepare": "node scripts/setup-hooks.mjs"
   },

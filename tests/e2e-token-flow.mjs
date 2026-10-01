@@ -225,6 +225,66 @@ async function main() {
 
   const revokedRes = await api("/api/projects", {}, nxoToken);
   ok("revoked token → 401", revokedRes.status === 401, `got ${revokedRes.status}`);
+
+  // ---------------------------------------------------------------------
+  // 6. Cross-tenant security: a SECOND user's token must not touch the
+  // first user's project. Ownership failures must be 404 (existence of a
+  // foreign project must not be distinguishable from a missing one).
+  // ---------------------------------------------------------------------
+  const email2 = `e2e-nxo-b-${Date.now()}@example.com`;
+  const signup2 = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
+    method: "POST",
+    headers: { apikey: ANON_KEY, "Content-Type": "application/json" },
+    body: JSON.stringify({ email: email2, password: PASSWORD }),
+  });
+  const session2 = (await signup2.json().catch(() => null))?.access_token;
+  ok("second user signed up", Boolean(session2));
+
+  const create2 = await api(
+    "/api/account/api-tokens",
+    { method: "POST", body: JSON.stringify({ name: "attacker probe", scopes: ["projects:read", "pipeline:run", "deploy:trigger"] }) },
+    session2
+  );
+  const nxo2 = (await create2.json().catch(() => null))?.token;
+  ok("second user's token created", typeof nxo2 === "string");
+
+  // projects:read lists ONLY your own projects (admin-client path must not leak).
+  const list2 = await api("/api/projects", {}, nxo2);
+  const list2Body = await list2.json().catch(() => null);
+  const leaked = (list2Body?.projects ?? []).some((p) => p.id === projectId);
+  ok("foreign project NOT in second user's list", leaked === false);
+
+  // Direct project access → 404, indistinguishable from nonexistent.
+  const foreignGet = await api(`/api/projects/${projectId}`, {}, nxo2);
+  ok("foreign project GET → 404", foreignGet.status === 404, `got ${foreignGet.status}`);
+
+  // Foreign pipeline run must be refused even with pipeline:run held.
+  const foreignPipeline = await api(
+    "/api/pipeline",
+    { method: "POST", body: JSON.stringify({ projectId, message: "own this project" }) },
+    nxo2
+  );
+  ok("foreign project pipeline → 404/403", foreignPipeline.status === 404 || foreignPipeline.status === 403, `got ${foreignPipeline.status}`);
+
+  // Foreign deploy must be refused even with deploy:trigger held.
+  const foreignDeploy = await api(
+    `/api/projects/${projectId}/deploy`,
+    { method: "POST", body: JSON.stringify({ confirmed: true }) },
+    nxo2
+  );
+  ok("foreign project deploy → 404/403", foreignDeploy.status === 404 || foreignDeploy.status === 403, `got ${foreignDeploy.status}`);
+
+  // Foreign merge (write path) refused too.
+  const foreignMerge = await api(
+    `/api/projects/${projectId}/merge`,
+    { method: "POST", body: JSON.stringify({ runId: "00000000-0000-0000-0000-000000000000" }) },
+    nxo2
+  );
+  ok("foreign project merge → 404/403", foreignMerge.status === 404 || foreignMerge.status === 403, `got ${foreignMerge.status}`);
+
+  // whoami must never echo token material.
+  const whoBodyText = await (await api("/api/me/display-name", {}, nxo2)).text();
+  ok("whoami leaks no token material", !whoBodyText.includes("nxo_") && !whoBodyText.includes(nxo2));
 }
 
 main()

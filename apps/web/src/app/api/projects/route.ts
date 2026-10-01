@@ -20,9 +20,15 @@ export async function GET(req: Request) {
     throw err;
   }
   const supabase = await scopedClient(auth.identity);
+  const userId = auth.identity.userId;
+
+  // Token requests use the service-role client (RLS bypassed), so the owner
+  // filter is mandatory here; session requests get it too (RLS would enforce
+  // the same, but the explicit filter keeps one code path).
   const { data, error } = await supabase
     .from("projects")
     .select("*")
+    .eq("user_id", userId)
     .order("created_at", { ascending: false });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
