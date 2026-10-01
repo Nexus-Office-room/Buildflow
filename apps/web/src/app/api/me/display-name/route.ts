@@ -57,8 +57,13 @@ export async function GET(req: Request) {
           null)
         : null,
     memberSince: sessionUser?.created_at ?? profile.created_at,
-    // CLI whoami hint: which credential authenticated this request.
+    // CLI whoami hint: which credential authenticated this request. For API
+    // tokens, echo back the token's own safe metadata (name + scopes — the
+    // caller already knows these; the raw token and hash never appear).
     via: auth.identity.token ? "api_token" : "session",
+    ...(auth.identity.token
+      ? { apiToken: { name: auth.identity.token.tokenName, scopes: auth.identity.token.scopes } }
+      : {}),
   });
 }
 

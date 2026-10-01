@@ -23,6 +23,16 @@ const ROLE_COLORS: Record<string, string> = {
 const RESET = "\x1b[0m";
 const DIM = "\x1b[2m";
 
+// Human-readable scope names for `nexus whoami` (mirrors the web app's
+// API_TOKEN_SCOPE_LABELS — the server stays the enforcement point).
+const SCOPE_LABELS: Record<string, string> = {
+  "projects:read": "Read your projects (read-only)",
+  "pipeline:run": "Run the AI pipeline on a project (write)",
+  "vault:read": "Read Prompt Vault entries (read-only)",
+  "vault:write": "Create, update, and delete Prompt Vault entries (write)",
+  "deploy:trigger": "Trigger production deploys (write)",
+};
+
 function makeClient() {
   const cfg = loadConfig();
   // Scoped Nexus API token (login --api-token) wins if present — it's the
@@ -65,7 +75,14 @@ async function loginCommand(opts: { token?: string; apiToken?: string }) {
   console.log("✓ Logged in. Credentials stored at ~/.nexus/config");
 }
 
-function logoutCommand() {
+async function logoutCommand(opts: { yes?: boolean }) {
+  if (!opts.yes) {
+    const answer = await prompt("Remove stored credentials from ~/.nexus/config? [y/N] ");
+    if (!/^(y|yes)$/i.test(answer.trim())) {
+      console.log("Cancelled — credentials kept.");
+      return;
+    }
+  }
   clearAuth();
   console.log("✓ Signed out (local credentials removed).");
 }
@@ -86,6 +103,12 @@ async function whoamiCommand() {
     const kind = cfg.apiToken ? "scoped Nexus API token" : "Supabase session token";
     const name = session.displayName ? ` as ${session.displayName}` : "";
     console.log(`Authenticated against ${cfg.baseUrl}${name} via ${kind}.`);
+    if (session.apiToken) {
+      console.log(`  token: ${session.apiToken.name}`);
+      for (const scope of session.apiToken.scopes) {
+        console.log(`  scope: ${scope} — ${SCOPE_LABELS[scope] ?? "custom"}`);
+      }
+    }
     const projects = await nexus.listProjects();
     console.log(`${projects.length} project(s) visible.`);
   } catch (err) {
@@ -350,7 +373,11 @@ program
   .option("--api-token <token>", "sign in with a scoped Nexus API token (minted at /account/api-keys); validated before storing")
   .action(loginCommand);
 
-program.command("logout").description("Remove local credentials.").action(logoutCommand);
+program
+  .command("logout")
+  .description("Remove local credentials (asks for confirmation unless --yes).")
+  .option("-y, --yes", "skip the confirmation prompt")
+  .action(logoutCommand);
 
 program
   .command("whoami")

@@ -8,12 +8,15 @@ export interface SessionInfo {
   displayName: string | null;
   avatarUrl: string | null;
   authenticated: boolean;
+  /** Present only when the request carried a Nexus API token (whoami). */
+  apiToken?: { name: string; scopes: string[] };
 }
 
 export async function getSession(client: NexusClient): Promise<SessionInfo> {
   const { status, data } = await client.request<{
     display_name?: string | null;
     avatar_url?: string | null;
+    apiToken?: { name: string; scopes: string[] };
   }>("GET", "/api/me/display-name");
   if (status === 401) {
     return { displayName: null, avatarUrl: null, authenticated: false };
@@ -25,6 +28,7 @@ export async function getSession(client: NexusClient): Promise<SessionInfo> {
     displayName: data?.display_name ?? null,
     avatarUrl: data?.avatar_url ?? null,
     authenticated: true,
+    ...(data?.apiToken ? { apiToken: data.apiToken } : {}),
   };
 }
 
