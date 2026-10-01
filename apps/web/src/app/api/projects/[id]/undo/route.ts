@@ -1,5 +1,12 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import {
+  getRequestIdentity,
+  requireScopeForRequest,
+  apiTokenErrorResponse,
+  auditAttribution,
+  scopedClient,
+  assertProjectOwnership,
+} from "@/lib/requestIdentity";
 import { undoSnapshot } from "@/lib/pipeline/isolation";
 import { logAudit } from "@/lib/audit";
 
@@ -9,17 +16,26 @@ import { logAudit } from "@/lib/audit";
 // restores/deletes the exact paths that run touched.
 //
 // POST body: { runId? } — omit runId to undo the latest applied run.
+// Dual auth: browser session or Nexus API token (pipeline:run scope).
 
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const auth = await getRequestIdentity(req);
+  if ("response" in auth) return auth.response;
+  try {
+    requireScopeForRequest(auth.identity, "pipeline:run");
+  } catch (err) {
+    const safe = apiTokenErrorResponse(err);
+    if (safe) return safe;
+    throw err;
+  }
+  const supabase = await scopedClient(auth.identity);
+  const ownershipError = await assertProjectOwnership(supabase, auth.identity, id);
+  if (ownershipError) return ownershipError;
+  const user = { id: auth.identity.userId };
 
   const body = await req.json().catch(() => ({}));
 
@@ -52,7 +68,7 @@ export async function POST(
     actor: "user",
     action: result.undone ? "run.undone" : "run.undo_failed",
     target: runId,
-    metadata: { message: result.message },
+    metadata: { message: result.message, via: auditAttribution(auth.identity) },
   });
 
   return NextResponse.json(result, { status: result.undone ? 200 : 400 });

@@ -1,19 +1,12 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
-import { getRequestIdentity, requireScopeForRequest, apiTokenErrorResponse, type RequestIdentity } from "@/lib/requestIdentity";
+import {
+  getRequestIdentity,
+  requireScopeForRequest,
+  apiTokenErrorResponse,
+  scopedClient,
+} from "@/lib/requestIdentity";
 import { DEFAULT_PROVIDER_CONFIG } from "@/lib/providers";
 import { ROLES } from "@/types/db";
-
-// Resolves the Supabase client for the request: session-cookie client for the
-// browser (RLS applies) or the service-role client for API-token requests
-// (RLS is bypassed, so every query below filters by the token's user_id —
-// see lib/requestIdentity). Keeping one client per request preserves all
-// existing session behavior exactly.
-async function scopedClient(identity: RequestIdentity) {
-  if (identity.token) return createAdminClient();
-  return createClient();
-}
 
 export async function GET(req: Request) {
   // Dual auth: browser session or Nexus API token (projects:read).

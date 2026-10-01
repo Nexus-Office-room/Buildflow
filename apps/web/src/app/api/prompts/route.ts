@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   getRequestIdentity,
   requireScopeForRequest,
   apiTokenErrorResponse,
-  type RequestIdentity,
+  scopedClient,
 } from "@/lib/requestIdentity";
 import { getDecryptedApiKey } from "@/lib/apiKeys";
 import { getOrCreateProfile } from "@/lib/profile";
@@ -17,13 +16,6 @@ import {
   commitVaultFile,
   migrateLegacyMarkdownPrompts,
 } from "@/lib/prompts/vault";
-
-// Resolves the Supabase client: session client (RLS) for the browser,
-// service-role client for API-token requests (queries filter by user_id).
-async function scopedClient(identity: RequestIdentity) {
-  if (identity.token) return createAdminClient();
-  return createClient();
-}
 
 // GET /api/prompts?q=search+text&tag=some-tag
 export async function GET(req: Request) {
@@ -65,7 +57,7 @@ export async function GET(req: Request) {
 // the public_prompts cache row. Best-effort — a vault/GitHub failure never
 // loses the Supabase row (the cache is repaired on the next save).
 async function syncPromptToVault(args: {
-  supabase: Awaited<ReturnType<typeof createClient>>;
+  supabase: SupabaseClient;
   userId: string;
   row: {
     id: string;

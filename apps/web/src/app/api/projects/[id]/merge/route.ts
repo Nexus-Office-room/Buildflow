@@ -1,5 +1,12 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import {
+  getRequestIdentity,
+  requireScopeForRequest,
+  apiTokenErrorResponse,
+  auditAttribution,
+  scopedClient,
+  assertProjectOwnership,
+} from "@/lib/requestIdentity";
 import { applySnapshot, discardSnapshot, getSnapshotDiff } from "@/lib/pipeline/isolation";
 import { logAudit } from "@/lib/audit";
 
@@ -11,17 +18,26 @@ import { logAudit } from "@/lib/audit";
 //                                           with its diff) — parallel-run
 //                                           safety: several can be pending
 //                                           at once and every one is visible.
+// Dual auth: browser session or Nexus API token (pipeline:run scope — the
+// merge is the tail end of a pipeline run's lifecycle).
 
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const auth = await getRequestIdentity(req);
+  if ("response" in auth) return auth.response;
+  try {
+    requireScopeForRequest(auth.identity, "pipeline:run");
+  } catch (err) {
+    const safe = apiTokenErrorResponse(err);
+    if (safe) return safe;
+    throw err;
+  }
+  const supabase = await scopedClient(auth.identity);
+  const ownershipError = await assertProjectOwnership(supabase, auth.identity, id);
+  if (ownershipError) return ownershipError;
 
   const { data: snapshots } = await supabase
     .from("run_snapshots")
@@ -44,11 +60,19 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const auth = await getRequestIdentity(req);
+  if ("response" in auth) return auth.response;
+  try {
+    requireScopeForRequest(auth.identity, "pipeline:run");
+  } catch (err) {
+    const safe = apiTokenErrorResponse(err);
+    if (safe) return safe;
+    throw err;
+  }
+  const supabase = await scopedClient(auth.identity);
+  const ownershipError = await assertProjectOwnership(supabase, auth.identity, id);
+  if (ownershipError) return ownershipError;
+  const user = { id: auth.identity.userId };
 
   const body = await req.json().catch(() => null);
   const runId = typeof body?.runId === "string" ? body.runId : "";
@@ -75,7 +99,7 @@ export async function POST(
       actor: "user",
       action: "merge.rejected",
       target: runId,
-      metadata: {},
+      metadata: { via: auditAttribution(auth.identity) },
     });
     return NextResponse.json({ status: "rejected" });
   }
@@ -102,7 +126,10 @@ export async function POST(
     actor: "user",
     action: "merge.applied",
     target: runId,
-    metadata: { filesApplied: result.filesApplied },
+    metadata: {
+      filesApplied: result.filesApplied,
+      via: auditAttribution(auth.identity),
+    },
   });
 
   return NextResponse.json({

@@ -39,9 +39,11 @@ from the root (`npm run dev`, `npm run build`, `npm run typecheck`,
 - **Cost Meter** — running token/cost estimate per project from persisted steps.
 - **Memory Board, Prompt Vault, Deploy Desk, Governance** — role capabilities,
   approval gating, audit log, and an encrypted secrets vault.
-- **CLI** — `nexus login | projects list | chat | sync | vault | deploy | undo`,
+- **CLI** — `nexus login | whoami | projects list | chat | sync | vault | deploy | undo`,
   plus a conversational REPL when run with no arguments in a project directory.
   See `apps/cli/`.
+- **Nexus API tokens** — scoped, revocable `nxo_live_…` credentials for the CLI
+  and scripts (see [API tokens](#api-tokens-nxo_live)).
 
 ## Setup
 
@@ -138,3 +140,65 @@ step limit and wall-clock timeout.
 
 See `supabase/migrations/`. RLS policies restrict every table to rows owned
 (directly or via `project_id`/`run_id`) by `auth.uid()`.
+
+## API tokens (`nxo_live…`)
+
+Mint credentials at **Account → API Keys** (`/account/api-keys`). The raw
+token is shown exactly once at creation — only its SHA-256 hash is stored
+(`api_tokens` table, migration 0014). Token requests authenticate with
+`Authorization: Bearer <token>` and hit the same routes as the web app;
+what a token may do is governed by its scopes.
+
+### Scopes
+
+| Scope | Grants |
+|---|---|
+| `projects:read` | List/get projects, read merge candidates, `nexus whoami` |
+| `pipeline:run` | Run the 5-role pipeline, merge/reject/undo run snapshots |
+| `vault:read` | Read Prompt Vault entries |
+| `vault:write` | Create, update, delete Prompt Vault entries |
+| `deploy:trigger` | Trigger production deploys and force GitHub syncs |
+
+Tokens are read-only by default: with no scopes selected, `projects:read` and
+`vault:read` are applied. Tokens can be revoked or given an expiry (7/30/90/365
+days or never); each carries a fixed 120-requests/minute limit and all actions
+are audit-attributed ("API token: <name>") without ever logging token material.
+
+### CLI
+
+```bash
+nexus login --api-token nxo_live_…   # validated against the server before storing
+nexus whoami                         # shows credential kind + visible project count
+```
+
+`nexus login` (browser flow) and `nexus login --token` (Supabase access token)
+remain available; `--api-token` is the least-privilege option for shared
+machines and CI. Credentials live in `~/.nexus/config` (mode 0600).
+
+### Endpoints and required scopes
+
+| Endpoint | Method | Scope |
+|---|---|---|
+| `/api/projects` | GET, POST | `projects:read` |
+| `/api/projects/{id}` | GET, PATCH | `projects:read` |
+| `/api/pipeline` | POST | `pipeline:run` |
+| `/api/projects/{id}/merge` | GET, POST | `pipeline:run` |
+| `/api/projects/{id}/merge-candidate` | GET | `projects:read` |
+| `/api/projects/{id}/undo` | POST | `pipeline:run` |
+| `/api/projects/{id}/deploy` | POST | `deploy:trigger` |
+| `/api/projects/{id}/github/sync` | POST | `deploy:trigger` |
+| `/api/prompts` | GET | `vault:read` |
+| `/api/prompts` | POST | `vault:write` |
+| `/api/me/display-name` | GET | `projects:read` |
+
+Example:
+
+```bash
+curl -H "Authorization: Bearer $NEXUS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"projectId":"<id>","message":"Add a footer to the landing page"}' \
+  http://localhost:3000/api/pipeline
+```
+
+Errors are non-revealing: every invalid/revoked/expired token returns the same
+generic 401, and a scope miss returns 403 naming only the missing scope.

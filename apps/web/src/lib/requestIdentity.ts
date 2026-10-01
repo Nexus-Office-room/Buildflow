@@ -1,5 +1,6 @@
-import type { User } from "@supabase/supabase-js";
+import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import {
   authenticateApiToken,
   apiTokenErrorResponse,
@@ -7,6 +8,7 @@ import {
   type ApiTokenContext,
   type ApiTokenScope,
 } from "@/lib/apiTokens";
+import { assertProjectOwnership } from "@/lib/requestScope";
 
 export { apiTokenErrorResponse };
 
@@ -62,6 +64,17 @@ export function requireScopeForRequest(
 ): void {
   if (identity.token) requireScope(identity.token, scope);
 }
+
+// Resolves the Supabase client for a dual-auth route: the session client
+// (cookie auth, RLS applies) for browser requests, or the service-role
+// client for API-token requests. The admin client bypasses RLS, so every
+// query on that path MUST filter by the token's user_id — use
+// assertProjectOwnership for project-scoped rows.
+export async function scopedClient(identity: RequestIdentity): Promise<SupabaseClient> {
+  return identity.token ? createAdminClient() : createClient();
+}
+
+export { assertProjectOwnership };
 
 // Audit attribution (Phase 10): names the credential behind an action without
 // ever including the raw token, its hash, or the authorization header. Used as

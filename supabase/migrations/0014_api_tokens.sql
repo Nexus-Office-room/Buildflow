@@ -28,8 +28,20 @@ create index if not exists api_tokens_hash_idx on api_tokens (token_hash);
 
 alter table api_tokens enable row level security;
 
-create policy "api_tokens_owner_all" on api_tokens
-  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+-- if-not-exists guard so re-applying (or a rerun after a partial failure)
+-- never aborts on the policy alone — the rest of the file is idempotent.
+do $$
+begin
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'public' and tablename = 'api_tokens'
+      and policyname = 'api_tokens_owner_all'
+  ) then
+    create policy "api_tokens_owner_all" on api_tokens
+      for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+  end if;
+end
+$$;
 
 -- ---------------------------------------------------------------------------
 -- Token lifecycle events (create / revoke / auth-denied) happen outside any
@@ -45,7 +57,17 @@ create index if not exists audit_events_user_created_idx on audit_events (user_i
 
 -- Non-project audit events (token lifecycle) stay visible to their owner
 -- only; project-scoped rows keep the existing project-ownership policy.
-create policy "audit_events_owner_no_project" on audit_events
-  for all using (project_id is null and auth.uid() = user_id) with check (
-    project_id is null and auth.uid() = user_id
-  );
+do $$
+begin
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'public' and tablename = 'audit_events'
+      and policyname = 'audit_events_owner_no_project'
+  ) then
+    create policy "audit_events_owner_no_project" on audit_events
+      for all using (project_id is null and auth.uid() = user_id) with check (
+        project_id is null and auth.uid() = user_id
+      );
+  end if;
+end
+$$;

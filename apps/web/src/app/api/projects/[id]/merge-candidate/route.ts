@@ -1,5 +1,11 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import {
+  getRequestIdentity,
+  requireScopeForRequest,
+  apiTokenErrorResponse,
+  scopedClient,
+  assertProjectOwnership,
+} from "@/lib/requestIdentity";
 import { getSnapshotDiff } from "@/lib/pipeline/isolation";
 
 // Addendum 17: review-before-merge. Returns the most recent unapplied
@@ -9,15 +15,22 @@ import { getSnapshotDiff } from "@/lib/pipeline/isolation";
 // this surfaces the latest, and /api/projects/[id]/merge lists all of them.
 
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const auth = await getRequestIdentity(req);
+  if ("response" in auth) return auth.response;
+  try {
+    requireScopeForRequest(auth.identity, "projects:read");
+  } catch (err) {
+    const safe = apiTokenErrorResponse(err);
+    if (safe) return safe;
+    throw err;
+  }
+  const supabase = await scopedClient(auth.identity);
+  const ownershipError = await assertProjectOwnership(supabase, auth.identity, id);
+  if (ownershipError) return ownershipError;
 
   const { data: snapshot } = await supabase
     .from("run_snapshots")

@@ -1,10 +1,10 @@
-import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 import {
   getRequestIdentity,
   requireScopeForRequest,
   apiTokenErrorResponse,
   auditAttribution,
+  scopedClient,
+  assertProjectOwnership,
 } from "@/lib/requestIdentity";
 import { runPipeline, type PipelineStepResult } from "@/lib/pipeline/run";
 import { perfTimer } from "@/lib/perf";
@@ -25,7 +25,7 @@ export async function POST(req: Request) {
     throw err;
   }
   const user = { id: auth.identity.userId };
-  const supabase = auth.identity.token ? createAdminClient() : await createClient();
+  const supabase = await scopedClient(auth.identity);
 
   const body = await req.json().catch(() => null);
   const projectId = typeof body?.projectId === "string" ? body.projectId : "";
@@ -37,6 +37,11 @@ export async function POST(req: Request) {
       { status: 400 }
     );
   }
+
+  // Token requests bypass RLS (service-role client), so ownership is
+  // enforced explicitly; session requests keep RLS scoping (returns null).
+  const ownershipError = await assertProjectOwnership(supabase, auth.identity, projectId);
+  if (ownershipError) return ownershipError;
 
   const { data: project } = await supabase
     .from("projects")

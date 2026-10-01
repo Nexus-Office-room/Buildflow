@@ -1,5 +1,13 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  getRequestIdentity,
+  requireScopeForRequest,
+  apiTokenErrorResponse,
+  auditAttribution,
+  scopedClient,
+  assertProjectOwnership,
+} from "@/lib/requestIdentity";
 import { planGitHubSync, applyGitHubSync, buildCommitMessage } from "@/lib/deploy/githubSync";
 import { getRequireApproval, assertCapability, CapabilityError } from "@/lib/capabilities";
 import { logAudit } from "@/lib/audit";
@@ -11,7 +19,7 @@ import { validateFiles, type ValidationIssue } from "@/lib/validate";
 // first failure with qaRetry=true) routed back through the QA role for one
 // auto-fix attempt before surfacing to the user.
 async function validatedPush(args: {
-  supabase: Awaited<ReturnType<typeof createClient>>;
+  supabase: SupabaseClient;
   projectId: string;
   userId: string;
   resolutions: Record<string, "mine" | "theirs">;
@@ -111,11 +119,21 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  // Dual auth: browser session or Nexus API token (deploy:trigger scope —
+  // a GitHub push is the same production-facing action surface as a deploy).
+  const auth = await getRequestIdentity(req);
+  if ("response" in auth) return auth.response;
+  try {
+    requireScopeForRequest(auth.identity, "deploy:trigger");
+  } catch (err) {
+    const safe = apiTokenErrorResponse(err);
+    if (safe) return safe;
+    throw err;
+  }
+  const user = { id: auth.identity.userId };
+  const supabase = await scopedClient(auth.identity);
+  const ownershipError = await assertProjectOwnership(supabase, auth.identity, id);
+  if (ownershipError) return ownershipError;
 
   const body = await req.json().catch(() => ({}));
   const resolutions: Record<string, "mine" | "theirs"> = body?.resolutions ?? {};
@@ -221,6 +239,7 @@ export async function POST(
         commitSha: result.commitSha,
         filesPushed: result.filesPushed,
         url: result.url,
+        via: auditAttribution(auth.identity),
       },
     });
 

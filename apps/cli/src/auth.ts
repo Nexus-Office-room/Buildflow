@@ -3,7 +3,7 @@ import { exec } from "node:child_process";
 import crypto from "node:crypto";
 import { loadConfig, saveConfig, defaultBaseUrl } from "./config.js";
 
-// `nexus login` — two paths:
+// `nexus login` — three paths:
 //
 // 1. Browser flow (default): starts a tiny local server on a random port,
 //    opens the web app's /login with a one-time state key. After the user
@@ -14,6 +14,13 @@ import { loadConfig, saveConfig, defaultBaseUrl } from "./config.js";
 // 2. Token paste (`nexus login --token`): for headless boxes. The user pastes
 //    a Supabase access token (Settings → Account → "CLI token" in the web
 //    app, or from any Supabase auth response).
+//
+// 3. Scoped API token (`nexus login --api-token`): a Nexus API token
+//    (nxo_live_... / nxo_test_...) minted at /account/api-keys. Unlike the
+//    full session token it carries only explicitly-granted scopes
+//    (projects:read, pipeline:run, vault:read, vault:write, deploy:trigger),
+//    is revocable, and the server stores only its SHA-256 hash. Best fit for
+//    shared machines and CI. Validated against the live API before storing.
 
 export async function loginBrowser(baseUrl: string): Promise<void> {
   const state = crypto.randomBytes(16).toString("hex");
@@ -82,6 +89,49 @@ export async function loginBrowser(baseUrl: string): Promise<void> {
 
 export async function loginWithToken(baseUrl: string, token: string): Promise<void> {
   saveConfig({ baseUrl, accessToken: token.trim() });
+}
+
+// Structural check mirrored from the server (apps/web/src/lib/apiTokens.ts)
+// so an obviously-wrong paste never leaves the machine.
+export function looksLikeNexusApiToken(token: string): boolean {
+  return /^nxo_(live|test)_[A-Za-z0-9_-]{40,}$/.test(token);
+}
+
+// `nexus login --api-token`: validate a scoped Nexus API token against the
+// live API (one cheap projects:read call) before anything touches disk — a
+// rejected token is never stored. The token itself is never printed.
+export async function loginWithApiToken(baseUrl: string, rawToken: string): Promise<void> {
+  const token = rawToken.trim();
+  if (!looksLikeNexusApiToken(token)) {
+    throw new Error(
+      "That doesn't look like a Nexus API token (expected nxo_live_…, mint one at /account/api-keys). Nothing was stored."
+    );
+  }
+
+  const res = await fetch(`${baseUrl.replace(/\/$/, "")}/api/projects`, {
+    headers: { Authorization: `Bearer ${token}` },
+  }).catch((err: unknown) => {
+    throw new Error(`Could not reach ${baseUrl}: ${err instanceof Error ? err.message : err}`);
+  });
+
+  if (res.status === 401) {
+    throw new Error("Token rejected by the server (invalid, revoked, or expired). Nothing was stored.");
+  }
+  if (res.status === 403) {
+    const body = (await res.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(
+      body?.error?.includes("rate limit")
+        ? `Token is rate-limited right now: ${body?.error}. Nothing was stored.`
+        : "Token was accepted but lacks the projects:read scope — mint a new token with that scope checked. Nothing was stored."
+    );
+  }
+  if (!res.ok) {
+    throw new Error(`Token validation failed (HTTP ${res.status}). Nothing was stored.`);
+  }
+
+  // Storing the API token clears any Supabase session — one credential per
+  // config, and the api-client sends whichever is set.
+  saveConfig({ baseUrl, apiToken: token, accessToken: undefined, refreshToken: undefined });
 }
 
 export async function refreshAccessToken(): Promise<string | null> {

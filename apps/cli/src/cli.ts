@@ -2,7 +2,7 @@
 import { Command } from "commander";
 import * as readline from "node:readline";
 import { loadConfig, saveConfig, clearAuth } from "./config.js";
-import { loginBrowser, loginWithToken } from "./auth.js";
+import { loginBrowser, loginWithToken, loginWithApiToken } from "./auth.js";
 import { resolveProject, gitRemoteForCwd } from "./project.js";
 import { createNexusClient, ApiError } from "@nexus-office/api-client";
 import { listVaultPrompts, ensureVaultRepo, getAuthenticatedUser } from "@nexus/github-sync";
@@ -25,7 +25,19 @@ const DIM = "\x1b[2m";
 
 function makeClient() {
   const cfg = loadConfig();
-  return createNexusClient({ baseUrl: cfg.baseUrl, token: cfg.accessToken });
+  // Scoped Nexus API token (login --api-token) wins if present — it's the
+  // least-privilege credential. Otherwise fall back to the Supabase session
+  // token from the browser flow. Both travel as Bearer and hit the same
+  // server-side routes; the nxo_ path additionally enforces scopes.
+  const token = cfg.apiToken ?? cfg.accessToken;
+  return createNexusClient({ baseUrl: cfg.baseUrl, token });
+}
+
+function requireCredential(): void {
+  const cfg = loadConfig();
+  if (!cfg.apiToken && !cfg.accessToken) {
+    throw new Error("Not logged in. Run `nexus login` first.");
+  }
 }
 
 function roleLabel(role: string): string {
@@ -37,8 +49,13 @@ function roleLabel(role: string): string {
 // nexus login / logout
 // ---------------------------------------------------------------------------
 
-async function loginCommand(opts: { token?: string }) {
+async function loginCommand(opts: { token?: string; apiToken?: string }) {
   const baseUrl = loadConfig().baseUrl;
+  if (opts.apiToken) {
+    await loginWithApiToken(baseUrl, opts.apiToken);
+    console.log("✓ API token saved to ~/.nexus/config (0600). The token is never shown again.");
+    return;
+  }
   if (opts.token) {
     await loginWithToken(baseUrl, opts.token);
     console.log("✓ Token saved to ~/.nexus/config");
@@ -51,6 +68,32 @@ async function loginCommand(opts: { token?: string }) {
 function logoutCommand() {
   clearAuth();
   console.log("✓ Signed out (local credentials removed).");
+}
+
+// ---------------------------------------------------------------------------
+// nexus whoami — verify the stored credential works; show what it is
+// ---------------------------------------------------------------------------
+
+async function whoamiCommand() {
+  requireCredential();
+  const cfg = loadConfig();
+  const nexus = makeClient();
+  try {
+    const session = await nexus.getSession();
+    if (!session.authenticated) {
+      throw new Error("Credential rejected (401) — token revoked or expired? Re-run `nexus login`.");
+    }
+    const kind = cfg.apiToken ? "scoped Nexus API token" : "Supabase session token";
+    const name = session.displayName ? ` as ${session.displayName}` : "";
+    console.log(`Authenticated against ${cfg.baseUrl}${name} via ${kind}.`);
+    const projects = await nexus.listProjects();
+    console.log(`${projects.length} project(s) visible.`);
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 401) {
+      throw new Error("Credential rejected (401) — token revoked or expired? Re-run `nexus login`.");
+    }
+    throw err;
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -302,11 +345,17 @@ program
 
 program
   .command("login")
-  .description("Sign in via the browser (or paste a token with --token). Stores credentials at ~/.nexus/config.")
+  .description("Sign in via the browser, paste a Supabase token (--token), or use a scoped Nexus API token (--api-token, nxo_live_...). Stores credentials at ~/.nexus/config.")
   .option("--token <token>", "sign in with a Supabase access token instead of the browser")
+  .option("--api-token <token>", "sign in with a scoped Nexus API token (minted at /account/api-keys); validated before storing")
   .action(loginCommand);
 
 program.command("logout").description("Remove local credentials.").action(logoutCommand);
+
+program
+  .command("whoami")
+  .description("Verify the stored credential works and show which kind it is.")
+  .action(whoamiCommand);
 
 const projects = program.command("projects").description("Manage projects.");
 projects
@@ -360,6 +409,8 @@ if (process.argv.length <= 2) {
     if (err instanceof ApiError) {
       console.error(`Error (${err.status}): ${err.message}`);
       if (err.status === 401) console.error("Run `nexus login` first.");
+      if (err.status === 403 && /scope/i.test(err.message))
+        console.error("Your API token lacks a required scope — mint a new one at /account/api-keys with the scope checked.");
     } else {
       console.error(err instanceof Error ? err.message : err);
     }
