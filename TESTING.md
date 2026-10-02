@@ -124,9 +124,10 @@ production migration has now caused two outages (the Addendum 7–10 tables
 missing in production surfaced as "Failed to load profile" and broken
 audit/capabilities/feedback routes). Quick production schema check: hit
 `https://<project-ref>.supabase.co/rest/v1/<table>?limit=0` with the anon key
-— a `PGRST205` "Could not find the table" error means a migration is pending.
-All migration files are written idempotently (`if not exists`), so re-running
-them in order is safe.
+— a `PGRST205` "Could not find the table" error means a migration is pending.All migration files are written idempotently (`if not exists`), so re-running them in order is safe.
+Current migrations now reach `0014_api_tokens.sql` (adds the `api_tokens` table
+backing the Addendum 15 scoped `nxo_…` tokens — applied to production
+2026-10-02 alongside 0013).
 
 ### Bundle-external native/WASM dependencies
 
@@ -220,16 +221,40 @@ To activate tier 2 in CI, add `VERCEL_TOKEN` (read-scope token, short
 expiry) and `VERCEL_PROJECT_ID` (`prj_Otwd27uVSYGB2vukQD9zJzOQYAEt`) as
 GitHub Actions secrets. Never paste tokens into chat or commit them.
 
+### Production domain: use `nexus-office-pi.vercel.app`
+
+The canonical production URL is **https://nexus-office-pi.vercel.app**
+(project `nexus-office`, `prj_Otwd27uVSYGB2vukQD9zJzOQYAEt`). The bare
+`nexus-office.vercel.app` subdomain is **not ours**: it is held by an
+unrelated static-editor project on a different Vercel account, which is
+also why this project got the `-pi` suffix at creation time. Adding the
+name via `POST /v9/projects/{id}/domains` returns HTTP 409
+`owned-on-other-team` — only the owning account (deleting its project)
+or Vercel support can release it. Never point checks, the CLI, or docs
+at `nexus-office.vercel.app`; it serves someone else's stale page and
+all `/api/*` routes 404 there.
+
+**Deployment-blocker rule:** Vercel refuses production deployments whose
+commit author doesn't match a GitHub account linked to a team member
+("Deployment was blocked — the commit could not be matched to a team
+member"). This is not a build failure. Keep the repo-local identity on
+the linked account (name `lekanay2005-coder`, email
+`236175080+lekanay2005-coder@users.noreply.github.com`).
+
 ### Post-deploy verification
 
 - [ ] Vercel deployment shows "Ready", not "Error"
 - [ ] The deployed URL actually loads (login page renders, not a 500)
 - [ ] One authenticated flow works end-to-end (e.g. send a chat message)
 
-Last pass: 2026-09-27, deploy `dpl_2Pv7JxaAhdwWTpNmfQ6wVXXhPRck` — Ready;
-`/login` returns 200 with real markup; `/api/config` returns the Supabase
-URL + anon key; unauthenticated `/api/projects` returns `[]`. The
-authenticated-flow checkbox still needs a human pass with a test account.
+Last pass: 2026-10-02, deploy `dpl_GLjuGWW2hxRsJtmRfibxmBbmCRU4`
+(commit `3ce9703`) — Ready; `nexus-office-pi.vercel.app` returns 200 on
+`/` and `/login`; `/api/config` returns the Supabase URL + anon key;
+unauthenticated `/api/projects` and `/api/me/display-name` return 401.
+The authenticated-flow checkbox still needs a human pass with a test
+account (or: mint an `nxo_` token at `/account/api-keys`, then
+`nexus login --api-token … && nexus whoami` against the `-pi` URL).
+Previous pass: 2026-09-27, deploy `dpl_2Pv7JxaAhdwWTpNmfQ6wVXXhPRck`.
 
 ---
 
