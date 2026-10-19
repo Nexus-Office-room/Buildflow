@@ -1,9 +1,8 @@
-// Auth for the static UI: talks to Supabase directly with the anon key
-// fetched from /api/config. Sessions live in the same sb-* cookies the
-// Next.js server reads, so both apps share one login.
+// Auth for the static UI: Supabase stores its browser session in local storage.
+// api.js forwards the access token to Next.js API routes as a bearer token.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.116.0";
-import { getConfig } from "./api.js";
+import { getConfig, setAccessToken } from "./api.js";
 
 let supabase = null;
 let session = null;
@@ -21,6 +20,11 @@ export async function initAuth() {
   supabase = createClient(config.supabaseUrl, config.supabaseAnonKey);
   const { data } = await supabase.auth.getSession();
   session = data.session ?? null;
+  setAccessToken(session?.access_token);
+  supabase.auth.onAuthStateChange((_event, nextSession) => {
+    session = nextSession;
+    setAccessToken(session?.access_token);
+  });
   return session;
 }
 

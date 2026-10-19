@@ -3,7 +3,7 @@
 // Deploy, Memory, Cost and Settings pages.
 
 import { initAuth, getSupabase, renderAuthView } from "./auth.js";
-import { listProjects, getProject, getMemory } from "./api.js";
+import { apiFetch, listProjects, getProject, getMemory } from "./api.js";
 import { createChatPane } from "./chat.js";
 import { createCodeCanvas } from "./canvas.js";
 import {
@@ -172,7 +172,7 @@ async function renderProjectsView() {
     if (!name) return;
     createBtn.disabled = true;
     try {
-      const res = await fetch("/api/projects", {
+      const res = await apiFetch("/api/projects", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name }),
