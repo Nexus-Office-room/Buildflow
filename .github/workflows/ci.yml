@@ -57,7 +57,9 @@ jobs:
         run: npm run build --workspace apps/web
 
       - name: CLI smoke (help output renders)
-        run: npm run start --workspace apps/cli -- --help
+        run: |
+          npm run build --workspace apps/cli
+          npm run start --workspace apps/cli -- --help
 
   # Full API-token lifecycle against a real Supabase (unit tests cover the
   # logic; this covers the actual HTTP surface). Uses supabase/cli to start
