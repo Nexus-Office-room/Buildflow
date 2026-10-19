@@ -44,4 +44,5 @@ next-env.d.ts
 
 # cli
 .nexus-token
+/apps/cli/dist/
 /dist

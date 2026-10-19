@@ -9,26 +9,25 @@
   },
   "files": [
     "bin",
-    "dist"
+    "dist/cli.cjs"
   ],
   "engines": {
     "node": ">=20"
   },
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc && node bin/nexus.js",
+    "build": "tsc --noEmit && esbuild src/cli.ts --bundle --platform=node --format=cjs --target=node20 --outfile=dist/cli.cjs",
+    "dev": "npm run build && node bin/nexus.js",
     "start": "node bin/nexus.js",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "npm run build"
   },
-  "dependencies": {
+  "dependencies": {},
+  "devDependencies": {
     "@nexus-office/api-client": "*",
     "@nexus/github-sync": "*",
     "@nexus/pipeline-types": "*",
     "commander": "^14.0.0",
-    "tsx": "^4.20.6"
-  },
-  "devDependencies": {
+    "esbuild": "^0.28.2",
     "@types/node": "^20",
     "typescript": "^5"
   }

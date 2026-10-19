@@ -166,6 +166,29 @@ are audit-attributed ("API token: <name>") without ever logging token material.
 
 ### CLI
 
+Run it from the monorepo while developing:
+
+```bash
+npm run cli -- --help
+```
+
+Build a standalone Node.js 20+ package and install the generated tarball:
+
+```bash
+npm run build --workspace @nexus-office/cli
+npm pack --workspace @nexus-office/cli
+npm install --global ./nexus-office-cli-0.1.0.tgz
+```
+
+The bundle includes the shared API client and GitHub helpers, so the installed
+CLI does not need the monorepo or a separate `tsx` runtime.
+
+Available commands include `login`, `logout`, `whoami`, `projects list`,
+`chat`, `sync`, `vault list`, `vault use`, `deploy`, and `undo`. In a connected
+project directory, running `nexus` opens the interactive chat REPL.
+
+For example:
+
 ```bash
 nexus login --api-token nxo_live_…   # validated against the server before storing
 nexus whoami                         # shows credential kind + visible project count
