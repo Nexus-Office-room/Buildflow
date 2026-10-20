@@ -28,6 +28,7 @@ export default function OfficeChatPage() {
   const [activeRoomId, setActiveRoomId] = useState("");
   const [messagesByRoom, setMessagesByRoom] = useState<Record<string, RoomMessage[]>>({});
   const [roomName, setRoomName] = useState("");
+  const [createInviteCode, setCreateInviteCode] = useState("");
   const [inviteCode, setInviteCode] = useState("");
   const [draft, setDraft] = useState("");
   const [loading, setLoading] = useState(true);
@@ -115,18 +116,19 @@ export default function OfficeChatPage() {
 
   async function createRoom(event: FormEvent) {
     event.preventDefault();
-    if (!roomName.trim() || busy) return;
+    if (!roomName.trim() || !/^\d{5}$/.test(createInviteCode) || busy) return;
     setBusy(true);
     setError("");
     try {
       const response = await fetch("/api/office/rooms", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: roomName.trim() }),
+        body: JSON.stringify({ name: roomName.trim(), invite_code: createInviteCode }),
       });
       const data = await response.json().catch(() => null);
       if (!response.ok) throw new Error(data?.error ?? "Could not create room.");
       setRoomName("");
+      setCreateInviteCode("");
       await loadRooms();
       setActiveRoomId(data.room.id);
       setNotice("Room created. Share its invite link with your team.");
@@ -205,13 +207,17 @@ export default function OfficeChatPage() {
 
         <div className="grid min-h-[62vh] overflow-hidden rounded-2xl border border-white/10 bg-neutral-950/80 md:grid-cols-[280px_1fr]">
           <aside className="border-b border-white/10 p-4 md:border-b-0 md:border-r">
-            <form onSubmit={createRoom} className="flex gap-2">
-              <input value={roomName} onChange={(e) => setRoomName(e.target.value)} maxLength={80} placeholder="New room name" aria-label="New room name" className="min-w-0 flex-1 rounded-md border border-white/10 bg-black/30 px-2 py-2 text-xs outline-none focus:border-cyan-300/50" />
-              <button disabled={busy || !roomName.trim()} className="rounded-md bg-cyan-300/15 px-3 text-xs text-cyan-100 disabled:opacity-40">Create</button>
+            <form onSubmit={createRoom} className="space-y-2">
+              <input value={roomName} onChange={(e) => setRoomName(e.target.value)} maxLength={80} placeholder="New room name" aria-label="New room name" className="w-full rounded-md border border-white/10 bg-black/30 px-2 py-2 text-xs outline-none focus:border-cyan-300/50" />
+              <label className="block">
+                <span className="mb-1 block font-mono text-[9px] uppercase tracking-widest text-neutral-500">Choose a 5-digit invite code</span>
+                <input value={createInviteCode} onChange={(e) => setCreateInviteCode(e.target.value.replace(/\D/g, "").slice(0, 5))} inputMode="numeric" autoComplete="off" maxLength={5} pattern="[0-9]{5}" placeholder="e.g. 04217" aria-label="Choose a 5-digit invite code" className="w-full rounded-md border border-white/10 bg-black/30 px-2 py-2 font-mono text-sm tracking-[.25em] outline-none focus:border-cyan-300/50" />
+              </label>
+              <button disabled={busy || !roomName.trim() || createInviteCode.length !== 5} className="w-full rounded-md bg-cyan-300/15 px-3 py-2 text-xs text-cyan-100 disabled:opacity-40">Create room</button>
             </form>
             <form onSubmit={submitInvite} className="mt-2 flex gap-2">
-              <input value={inviteCode} onChange={(e) => setInviteCode(e.target.value)} placeholder="Paste invite code" aria-label="Room invite code" className="min-w-0 flex-1 rounded-md border border-white/10 bg-black/30 px-2 py-2 text-xs outline-none focus:border-cyan-300/50" />
-              <button disabled={busy || !inviteCode.trim()} className="rounded-md border border-white/10 px-3 text-xs text-neutral-300 disabled:opacity-40">Join</button>
+              <input value={inviteCode} onChange={(e) => setInviteCode(e.target.value.replace(/\D/g, "").slice(0, 5))} inputMode="numeric" maxLength={5} placeholder="5-digit invite code" aria-label="Room invite code" className="min-w-0 flex-1 rounded-md border border-white/10 bg-black/30 px-2 py-2 text-xs outline-none focus:border-cyan-300/50" />
+              <button disabled={busy || inviteCode.length !== 5} className="rounded-md border border-white/10 px-3 text-xs text-neutral-300 disabled:opacity-40">Join</button>
             </form>
             <h2 className="mb-2 mt-6 font-mono text-[10px] uppercase tracking-widest text-neutral-600">Your rooms</h2>
             <div className="space-y-1">

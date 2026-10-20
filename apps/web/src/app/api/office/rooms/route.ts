@@ -1,4 +1,3 @@
-import { randomBytes } from "node:crypto";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { officeChatSetupError } from "@/lib/officeChat";
@@ -29,13 +28,16 @@ export async function POST(req: Request) {
 
   const body = await req.json().catch(() => null);
   const name = typeof body?.name === "string" ? body.name.trim().slice(0, 80) : "";
+  const inviteCode = typeof body?.invite_code === "string" ? body.invite_code.trim() : "";
   if (!name) return NextResponse.json({ error: "Room name is required." }, { status: 400 });
+  if (!/^\d{5}$/.test(inviteCode)) return NextResponse.json({ error: "Choose an invite code with exactly 5 digits." }, { status: 400 });
 
   const { data: room, error: roomError } = await supabase
     .from("office_rooms")
-    .insert({ name, invite_code: randomBytes(24).toString("base64url"), created_by: user.id })
+    .insert({ name, invite_code: inviteCode, created_by: user.id })
     .select("id, name, invite_code, created_by, created_at")
     .single();
+  if (roomError?.code === "23505") return NextResponse.json({ error: "That invite code is already in use. Choose another 5-digit code." }, { status: 409 });
   if (roomError || !room) return NextResponse.json({ error: officeChatSetupError(roomError) ?? roomError?.message ?? "Could not create room." }, { status: officeChatSetupError(roomError) ? 503 : 500 });
 
   const { error: memberError } = await supabase
