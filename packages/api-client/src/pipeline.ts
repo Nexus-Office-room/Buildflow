@@ -24,6 +24,13 @@ export interface PipelineDone {
 
 export type StepHandler = (step: PipelineStepEvent) => void;
 export type PipelineWorkflowMode = "plan" | "build" | "debug";
+export interface PipelineBuildBrief {
+  frontend?: string;
+  backend?: string;
+  contracts?: string;
+  uiux?: string;
+  references?: string;
+}
 
 /**
  * Runs the 5-role pipeline, invoking `onStep` as each role's card completes.
@@ -34,12 +41,13 @@ export async function runPipeline(
   projectId: string,
   message: string,
   onStep?: StepHandler,
-  options?: { workflowMode?: PipelineWorkflowMode }
+  options?: { workflowMode?: PipelineWorkflowMode; buildBrief?: PipelineBuildBrief }
 ): Promise<PipelineDone> {
   const res = await client.requestRaw("POST", "/api/pipeline", {
     projectId,
     message,
     workflowMode: options?.workflowMode,
+    buildBrief: options?.buildBrief,
   }, { Accept: "text/event-stream" });
 
   if (!res.ok || !res.body) {

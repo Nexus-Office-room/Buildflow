@@ -179,7 +179,7 @@ export default function ModelRouterPanel({
         <p className="mb-4 text-sm text-neutral-500">
           Choose which provider and model handles each role in the pipeline. Roles left on
           the default run on our shared free-tier key ({monthlyLimitText()} runs/month);
-          add your own key in Integrations to go unlimited.
+          add a provider key below or connect a provider in the catalog to use your own account.
         </p>
         <div className="space-y-2">
           {ROLES.map((role) => {
@@ -331,7 +331,7 @@ export default function ModelRouterPanel({
         </p>
         <div className="space-y-2">
           {PROVIDERS.map((provider) => {
-            const configured = configuredKeys.has(provider);
+          const configured = configuredKeys.has(provider);
             return (
               <div
                 key={provider}

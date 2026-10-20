@@ -33,6 +33,23 @@ export async function POST(req: Request) {
   const workflowMode = body?.workflowMode === "plan" || body?.workflowMode === "build" || body?.workflowMode === "debug"
     ? body.workflowMode
     : undefined;
+  const buildBrief = body?.buildBrief && typeof body.buildBrief === "object" && !Array.isArray(body.buildBrief)
+    ? body.buildBrief as Record<string, unknown>
+    : {};
+
+  // Bound untrusted client-provided context before it reaches any model prompt.
+  const briefFields = [
+    ["Frontend", buildBrief.frontend],
+    ["Backend", buildBrief.backend],
+    ["API / contracts", buildBrief.contracts],
+    ["UI / UX", buildBrief.uiux],
+    ["References and tools", buildBrief.references],
+  ] as const;
+  const briefText = briefFields
+    .filter(([, value]) => typeof value === "string" && value.trim())
+    .map(([label, value]) => `${label}: ${(value as string).trim().slice(0, 2000)}`)
+    .join("\n");
+  const promptMessage = briefText ? `${message}\n\nBUILD BRIEF\n${briefText}` : message;
 
   if (!projectId || !message) {
     return new Response(
@@ -112,7 +129,7 @@ export async function POST(req: Request) {
           supabase,
           projectId,
           userId: user.id,
-          userMessage: message,
+          userMessage: promptMessage,
           workflowMode,
           onStep: (step: PipelineStepResult) => send({ type: "step", step }),
           // Live progress from Codebuff-backed roles (tool calls, retries) —

@@ -7,6 +7,7 @@ import RelayTrack from "./RelayTrack";
 import type { PipelineStep, Role } from "@/types/db";
 import { stripMemoryBlock, stripStrategistBlock, parseStrategistOutput } from "@/lib/pipeline/memory";
 import { createNexusClient, ApiError } from "@nexus-office/api-client";
+import type { PipelineBuildBrief } from "@nexus-office/api-client";
 
 // Same-origin client (cookie auth) — every request below goes through the
 // shared @nexus-office/api-client package instead of raw fetch.
@@ -46,6 +47,8 @@ export default function ChatPanel({
 }) {
   const [runs, setRuns] = useState<RunWithSteps[]>(initialRuns);
   const [workflowMode, setWorkflowMode] = useState<"plan" | "build" | "debug">("build");
+  const [showBuildBrief, setShowBuildBrief] = useState(false);
+  const [buildBrief, setBuildBrief] = useState<PipelineBuildBrief>({});
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // Live progress line from Codebuff-backed roles (e.g. "builder →
@@ -155,7 +158,7 @@ export default function ChatPanel({
           )
         );
         setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
-      }, { workflowMode }).catch((err: unknown) => {
+      }, { workflowMode, buildBrief }).catch((err: unknown) => {
         if (err instanceof ApiError && err.status === 402 && err.code === "free_limit_reached") {
           const usage = (err.body as { usage?: { used?: number; limit?: number; resetAt?: string } })?.usage;
           setLimitInfo({
@@ -303,6 +306,51 @@ export default function ChatPanel({
       {error && <p className="px-4 pb-1 text-xs text-red-400">{error}</p>}
 
       <form onSubmit={handleSubmit} className="glass-panel border-x-0 border-b-0 p-3">
+        <div className="mb-2">
+          <button
+            type="button"
+            aria-expanded={showBuildBrief}
+            onClick={() => setShowBuildBrief((open) => !open)}
+            disabled={pending}
+            className="flex items-center gap-2 text-xs font-medium text-neutral-300 hover:text-white disabled:opacity-50"
+          >
+            <span aria-hidden="true">{showBuildBrief ? "▾" : "▸"}</span>
+            Build brief <span className="font-normal text-neutral-500">· add notes for each work area, Figma/docs links, or AI handoff context</span>
+          </button>
+          {showBuildBrief && (
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              {([
+                ["frontend", "Frontend", "Pages, components, behavior, accessibility…"],
+                ["backend", "Backend", "Routes, services, database, auth…"],
+                ["contracts", "API / Contracts", "Endpoints, request/response shapes, integrations…"],
+                ["uiux", "UI / UX", "Visual direction, layout, Figma handoff, interaction…"],
+              ] as const).map(([key, label, placeholder]) => (
+                <label key={key} className="block rounded-md border border-neutral-800 bg-neutral-950/70 p-2">
+                  <span className="mb-1 block font-mono text-[10px] uppercase tracking-wide text-neutral-400">{label}</span>
+                  <textarea
+                    value={buildBrief[key] ?? ""}
+                    onChange={(event) => setBuildBrief((brief) => ({ ...brief, [key]: event.target.value }))}
+                    placeholder={placeholder}
+                    rows={2}
+                    disabled={pending}
+                    className="w-full resize-y bg-transparent text-xs text-neutral-100 outline-none placeholder:text-neutral-600"
+                  />
+                </label>
+              ))}
+              <label className="block rounded-md border border-neutral-800 bg-neutral-950/70 p-2 sm:col-span-2">
+                <span className="mb-1 block font-mono text-[10px] uppercase tracking-wide text-neutral-400">References & tools</span>
+                <textarea
+                  value={buildBrief.references ?? ""}
+                  onChange={(event) => setBuildBrief((brief) => ({ ...brief, references: event.target.value }))}
+                  placeholder="Paste Figma, docs, or ChatGPT links and any relevant notes. Include the important details here if a link needs access."
+                  rows={2}
+                  disabled={pending}
+                  className="w-full resize-y bg-transparent text-xs text-neutral-100 outline-none placeholder:text-neutral-600"
+                />
+              </label>
+            </div>
+          )}
+        </div>
         <div className="mb-2 flex items-center gap-1.5" role="group" aria-label="Workflow mode">
           <span className="mr-1 font-mono text-[10px] uppercase tracking-wider text-neutral-500">Mode</span>
           {([
