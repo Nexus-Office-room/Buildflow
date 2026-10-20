@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore, type FormEvent } from "react";
 import Link from "next/link";
 import NexusLogo from "@/components/brand/NexusLogo";
 
@@ -19,6 +19,10 @@ interface RoomMessage {
   created_at: string;
 }
 
+const subscribeToOrigin = () => () => {};
+const getOriginSnapshot = () => window.location.origin;
+const getOriginServerSnapshot = () => "";
+
 export default function OfficeChatPage() {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [activeRoomId, setActiveRoomId] = useState("");
@@ -30,9 +34,13 @@ export default function OfficeChatPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const siteOrigin = useSyncExternalStore(subscribeToOrigin, getOriginSnapshot, getOriginServerSnapshot);
 
   const activeRoom = useMemo(() => rooms.find((room) => room.id === activeRoomId) ?? null, [rooms, activeRoomId]);
   const messages = messagesByRoom[activeRoomId] ?? [];
+  const inviteLink = activeRoom
+    ? `${siteOrigin}/office-chat?join=${encodeURIComponent(activeRoom.invite_code)}`
+    : "";
 
   const loadRooms = useCallback(async () => {
     const response = await fetch("/api/office/rooms", { cache: "no-store" });
@@ -167,13 +175,13 @@ export default function OfficeChatPage() {
     }
   }
 
-  async function copyInvite() {
-    if (!activeRoom) return;
+  async function copyText(value: string, label: string) {
+    if (!value) return;
     try {
-      await navigator.clipboard.writeText(`${window.location.origin}/office-chat?join=${encodeURIComponent(activeRoom.invite_code)}`);
-      setNotice("Invite link copied.");
+      await navigator.clipboard.writeText(value);
+      setNotice(`${label} copied.`);
     } catch {
-      setError("Clipboard access was blocked. Copy the invite code from room details.");
+      setError(`Clipboard access was blocked. Select and copy the ${label.toLowerCase()} shown below.`);
     }
   }
 
@@ -222,8 +230,23 @@ export default function OfficeChatPage() {
               <>
                 <header className="flex items-center gap-3 border-b border-white/10 px-4 py-3">
                   <div className="min-w-0 flex-1"><h2 className="truncate font-medium"># {activeRoom.name}</h2><p className="text-[10px] text-neutral-600">Room chat · messages refresh every 5 seconds</p></div>
-                  <button onClick={copyInvite} className="rounded-md border border-white/10 px-3 py-1.5 text-xs text-neutral-300 hover:bg-white/5">Copy invite link</button>
                 </header>
+                <aside aria-label="Room invitation" className="grid gap-3 border-b border-cyan-300/10 bg-cyan-300/[.035] px-4 py-3 sm:grid-cols-[1fr_auto] sm:items-center">
+                  <div className="min-w-0 space-y-2">
+                    <div>
+                      <p className="font-mono text-[9px] uppercase tracking-widest text-neutral-500">Invite link</p>
+                      <p className="break-all font-mono text-xs text-cyan-100">{inviteLink}</p>
+                    </div>
+                    <div>
+                      <p className="font-mono text-[9px] uppercase tracking-widest text-neutral-500">Invite code</p>
+                      <p className="break-all font-mono text-xs text-neutral-300">{activeRoom.invite_code}</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 sm:flex-col">
+                    <button onClick={() => void copyText(inviteLink, "Invite link")} className="rounded-md border border-white/10 px-3 py-1.5 text-xs text-neutral-300 hover:bg-white/5">Copy link</button>
+                    <button onClick={() => void copyText(activeRoom.invite_code, "Invite code")} className="rounded-md border border-white/10 px-3 py-1.5 text-xs text-neutral-300 hover:bg-white/5">Copy code</button>
+                  </div>
+                </aside>
                 <div className="flex-1 space-y-3 overflow-y-auto p-4">
                   {messages.map((message) => (
                     <article key={message.id} className="rounded-lg border border-white/5 bg-white/[.025] px-3 py-2">
