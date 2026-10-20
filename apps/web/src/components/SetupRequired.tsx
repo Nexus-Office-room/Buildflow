@@ -7,12 +7,11 @@ export default function SetupRequired() {
           <h1 className="text-xl font-semibold text-neutral-100">Nexus Office — setup required</h1>
         </div>
         <p className="mb-6 text-sm text-neutral-400">
-          The server is running, but its Supabase connection isn&apos;t configured yet.
+          Supabase may already be set up. This deployment still needs its own connection settings.
         </p>
         <ol className="mb-6 list-decimal space-y-2 pl-5 text-sm text-neutral-300">
           <li>
-            Create a project at <span className="font-mono text-xs text-[var(--role-analyst)]">supabase.com</span>{" "}
-            and copy its URL + anon key from Settings → API.
+            In Supabase Settings → API, copy the project URL and publishable (anon) key.
           </li>
           <li>
             Run every migration in <span className="font-mono text-xs text-[var(--role-analyst)]">supabase/migrations/</span>{" "}
@@ -20,10 +19,10 @@ export default function SetupRequired() {
           </li>
           <li>
             Add <span className="font-mono text-xs text-[var(--role-analyst)]">NEXT_PUBLIC_SUPABASE_URL</span> and{" "}
-            <span className="font-mono text-xs text-[var(--role-analyst)]">NEXT_PUBLIC_SUPABASE_ANON_KEY</span> in
-            Settings → Environment.
+            <span className="font-mono text-xs text-[var(--role-analyst)]">NEXT_PUBLIC_SUPABASE_ANON_KEY</span> to the
+            matching Vercel environment (Preview or Production).
           </li>
-          <li>Reload this page.</li>
+          <li>Redeploy this environment, then reload this page.</li>
         </ol>
         <p className="text-xs text-neutral-500">
           Also add <span className="font-mono text-xs">NEXUS_ENCRYPTION_KEY</span> (base64, 32 bytes) and at least one
