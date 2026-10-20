@@ -26,6 +26,12 @@ const BASE_URL_PRESETS: { label: string; url: string; type: IntegrationType; hin
     type: "ai_provider",
     hint: "DeepSeek models through its OpenAI-compatible API",
   },
+  { label: "Groq", url: "https://api.groq.com/openai/v1", type: "ai_provider", hint: "Fast inference; availability and pricing depend on model" },
+  { label: "Mistral AI", url: "https://api.mistral.ai/v1", type: "ai_provider", hint: "Mistral models through an OpenAI-compatible API" },
+  { label: "Fireworks AI", url: "https://api.fireworks.ai/inference/v1", type: "ai_provider", hint: "Hosted open models; usage-based pricing" },
+  { label: "Cerebras", url: "https://api.cerebras.ai/v1", type: "ai_provider", hint: "Fast inference; plans and free access can vary" },
+  { label: "Perplexity", url: "https://api.perplexity.ai", type: "ai_provider", hint: "Perplexity models through an OpenAI-compatible API" },
+  { label: "Hugging Face", url: "https://router.huggingface.co/v1", type: "ai_provider", hint: "Model access through Hugging Face Inference Providers" },
   { label: "Gemini", url: "https://generativelanguage.googleapis.com/v1beta/openai", type: "ai_provider", hint: "Single provider — Gemini models" },
   { label: "Together AI", url: "https://api.together.xyz/v1", type: "ai_provider" },
   { label: "OpenAI", url: "https://api.openai.com/v1", type: "ai_provider" },
@@ -142,7 +148,7 @@ export default function IntegrationsPanel({
 
       {showForm && <AddIntegrationForm projectId={projectId} onSubmit={handleAdd} error={error} />}
 
-      <div className="grid gap-2 sm:grid-cols-2">
+      <div className="space-y-2">
         {integrations.map((integration) => {
           const result = testResults[integration.id];
           return (

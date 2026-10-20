@@ -16,7 +16,7 @@ import * as explore from "./explore";
 
 // Named re-exports so consumers can import functions and types directly.
 export { runPipeline, listPipelineRuns, getPipelineRun } from "./pipeline";
-export type { PipelineDone, PipelineIsolationSummary, PipelineStepEvent, PipelineWorkflowMode, StepHandler } from "./pipeline";
+export type { PipelineBuildBrief, PipelineDone, PipelineIsolationSummary, PipelineStepEvent, PipelineWorkflowMode, StepHandler } from "./pipeline";
 export { listProjects, getProject, updateProject, connectRepo, listFiles, saveFile, getMemory, saveMemory, getSettings, saveSettings, getCost, getAudit, getMergeCandidate, mergeRun, rejectRun, undoLastRun, getRoleModels, saveRoleModels, getCapabilities, saveCapabilities, listIntegrations, addIntegration, deleteIntegration, testIntegration, listGatewayModels } from "./projects";
 export type { ProjectSummary, ProjectFileEntry, MergeCandidate, MergeCandidateFile, RoleModelRow, IntegrationEntry } from "./projects";
 export { listVaultPrompts, saveVaultPrompt, setPromptVisibility, deleteVaultPrompt } from "./vault";
@@ -45,7 +45,7 @@ export interface NexusClientAll extends ReturnType<typeof bindAll> {}
 function bindAll(client: NexusClient) {
   return {
     // pipeline
-    runPipeline: (projectId: string, message: string, onStep?: pipeline.StepHandler, options?: { workflowMode?: pipeline.PipelineWorkflowMode }) =>
+    runPipeline: (projectId: string, message: string, onStep?: pipeline.StepHandler, options?: { workflowMode?: pipeline.PipelineWorkflowMode; buildBrief?: pipeline.PipelineBuildBrief }) =>
       pipeline.runPipeline(client, projectId, message, onStep, options),
     listPipelineRuns: (projectId: string) => pipeline.listPipelineRuns(client, projectId),
     getPipelineRun: (projectId: string, runId: string) =>
