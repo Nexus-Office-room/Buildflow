@@ -23,6 +23,7 @@ export interface PipelineDone {
 }
 
 export type StepHandler = (step: PipelineStepEvent) => void;
+export type PipelineWorkflowMode = "plan" | "build" | "debug";
 
 /**
  * Runs the 5-role pipeline, invoking `onStep` as each role's card completes.
@@ -32,11 +33,13 @@ export async function runPipeline(
   client: NexusClient,
   projectId: string,
   message: string,
-  onStep?: StepHandler
+  onStep?: StepHandler,
+  options?: { workflowMode?: PipelineWorkflowMode }
 ): Promise<PipelineDone> {
   const res = await client.requestRaw("POST", "/api/pipeline", {
     projectId,
     message,
+    workflowMode: options?.workflowMode,
   }, { Accept: "text/event-stream" });
 
   if (!res.ok || !res.body) {

@@ -57,6 +57,7 @@ interface RunPipelineArgs {
   projectId: string;
   userId: string;
   userMessage: string;
+  workflowMode?: "plan" | "build" | "debug";
   roleConfig?: Partial<Record<Role, ProviderConfig>>;
   // Invoked immediately after each step is persisted, so a streaming caller
   // (the API route) can push it to the client without waiting for the rest
@@ -72,6 +73,7 @@ export async function runPipeline({
   projectId,
   userId,
   userMessage,
+  workflowMode,
   roleConfig,
   onStep,
   onRoleEvent: sendRoleEvent,
@@ -113,7 +115,14 @@ export async function runPipeline({
   try {
     // --- Step 1: Strategist decides route ---
     const strategistConfig = effectiveRoleConfig.strategist ?? DEFAULT_PROVIDER_CONFIG;
-    const strategistPrompt = `${memoryText}\n\nUSER MESSAGE:\n${userMessage}`;
+    const modeInstruction = workflowMode === "plan"
+      ? "WORKFLOW: PLAN ONLY. Give an ordered plan. Do not ask the Builder to change files or deploy."
+      : workflowMode === "debug"
+        ? "WORKFLOW: DEBUG. Find a likely root cause from the available evidence, then propose and implement a focused fix. State uncertainty."
+        : workflowMode === "build"
+          ? "WORKFLOW: BUILD. Plan and carry the user's requested implementation through review and QA."
+          : "";
+    const strategistPrompt = `${memoryText}${modeInstruction ? `\n\n${modeInstruction}` : ""}\n\nUSER MESSAGE:\n${userMessage}`;
     const strategistResult = isCodebuffProvider(strategistConfig.provider)
       ? await runRoleViaCodebuff({
           supabase,
@@ -158,13 +167,18 @@ export async function runPipeline({
 
     // The Codebuff strategist returns structured output directly; the plain
     // LLM path falls back to fenced-block parsing.
-    const { needsFullPipeline, direction } =
+    const { needsFullPipeline: strategistNeedsPipeline, direction } =
       isCodebuffProvider(strategistConfig.provider) && strategistResult.structured
         ? {
             needsFullPipeline: Boolean(strategistResult.structured.needs_full_pipeline),
             direction: String(strategistResult.structured.direction ?? ""),
           }
         : parseStrategistOutput(strategistResult.text);
+    const needsFullPipeline = workflowMode === "plan"
+      ? false
+      : workflowMode === "build" || workflowMode === "debug"
+        ? true
+        : strategistNeedsPipeline;
     const rolesToRun: Role[] = needsFullPipeline
       ? ["builder", "analyst", "qa", "ops"]
       : ["ops"];
@@ -203,7 +217,7 @@ export async function runPipeline({
 
     for (const role of rolesToRun) {
       const config = effectiveRoleConfig[role] ?? DEFAULT_PROVIDER_CONFIG;
-      const prompt = buildRolePrompt(memoryText, userMessage, priorOutputs);
+      const prompt = `${buildRolePrompt(memoryText, userMessage, priorOutputs)}${modeInstruction ? `\n\n${modeInstruction}` : ""}`;
 
       // Roles routed to "codebuff" run as real Codebuff agents (the same
       // runtime that powers Freebuff): tool use, structured outputs, retries.

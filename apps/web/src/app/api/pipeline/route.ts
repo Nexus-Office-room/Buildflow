@@ -30,6 +30,9 @@ export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
   const projectId = typeof body?.projectId === "string" ? body.projectId : "";
   const message = typeof body?.message === "string" ? body.message.trim() : "";
+  const workflowMode = body?.workflowMode === "plan" || body?.workflowMode === "build" || body?.workflowMode === "debug"
+    ? body.workflowMode
+    : undefined;
 
   if (!projectId || !message) {
     return new Response(
@@ -110,6 +113,7 @@ export async function POST(req: Request) {
           projectId,
           userId: user.id,
           userMessage: message,
+          workflowMode,
           onStep: (step: PipelineStepResult) => send({ type: "step", step }),
           // Live progress from Codebuff-backed roles (tool calls, retries) —
           // rendered as a transient status line in the chat UI.

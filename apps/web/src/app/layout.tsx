@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import HackerBackground from "@/components/brand/HackerBackground";
+import PatchCompanion from "@/components/brand/PatchCompanion";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -61,6 +62,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <body className="min-h-full flex flex-col">
         {children}
+        <PatchCompanion />
         <NexusBackdrop />
         <HackerBackground />
         {/* Addendum 14: CRT scanlines + vignette above backdrop/rain, below content. */}

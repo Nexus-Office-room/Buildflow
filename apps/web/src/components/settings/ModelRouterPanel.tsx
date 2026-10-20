@@ -19,7 +19,7 @@ const PROVIDERS: ProviderName[] = ["anthropic", "openai", "google"];
 const BUILT_IN_PROVIDERS = new Set<string>(PROVIDERS);
 
 // Gateways whose model list we fetch live instead of hardcoding.
-const DYNAMIC_MODEL_GATEWAYS = new Set(["openrouter"]);
+const DYNAMIC_MODEL_GATEWAYS = new Set(["openrouter", "deepseek"]);
 
 function isDynamicGateway(name: string): boolean {
   return DYNAMIC_MODEL_GATEWAYS.has(name.toLowerCase());
