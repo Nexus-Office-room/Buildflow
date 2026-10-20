@@ -120,6 +120,18 @@ export default function OfficeWorkspace({
         >
           vault/
         </Link>
+        <Link
+          href="/companions"
+          className="font-mono text-xs text-neutral-500 hover:text-[var(--term-accent)]"
+        >
+          sidekick/
+        </Link>
+        <Link
+          href="/office-chat"
+          className="font-mono text-xs text-neutral-500 hover:text-[var(--term-accent)]"
+        >
+          team-chat/
+        </Link>
         <UserAvatarMenu
           displayName={displayName}
           avatarUrl={avatarUrl}

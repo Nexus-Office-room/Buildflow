@@ -45,6 +45,7 @@ export default function ChatPanel({
   onFilesChanged?: () => void;
 }) {
   const [runs, setRuns] = useState<RunWithSteps[]>(initialRuns);
+  const [workflowMode, setWorkflowMode] = useState<"plan" | "build" | "debug">("build");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // Live progress line from Codebuff-backed roles (e.g. "builder →
@@ -154,7 +155,7 @@ export default function ChatPanel({
           )
         );
         setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
-      }).catch((err: unknown) => {
+      }, { workflowMode }).catch((err: unknown) => {
         if (err instanceof ApiError && err.status === 402 && err.code === "free_limit_reached") {
           const usage = (err.body as { usage?: { used?: number; limit?: number; resetAt?: string } })?.usage;
           setLimitInfo({
@@ -301,7 +302,30 @@ export default function ChatPanel({
 
       {error && <p className="px-4 pb-1 text-xs text-red-400">{error}</p>}
 
-      <form onSubmit={handleSubmit} className="glass-panel flex gap-2 border-x-0 border-b-0 p-3">
+      <form onSubmit={handleSubmit} className="glass-panel border-x-0 border-b-0 p-3">
+        <div className="mb-2 flex items-center gap-1.5" role="group" aria-label="Workflow mode">
+          <span className="mr-1 font-mono text-[10px] uppercase tracking-wider text-neutral-500">Mode</span>
+          {([
+            ["plan", "Plan"],
+            ["build", "Build"],
+            ["debug", "Debug"],
+          ] as const).map(([mode, label]) => (
+            <button
+              key={mode}
+              type="button"
+              aria-pressed={workflowMode === mode}
+              disabled={pending}
+              onClick={() => setWorkflowMode(mode)}
+              className={`rounded px-2.5 py-1 font-mono text-[11px] transition ${workflowMode === mode ? "bg-emerald-300/15 text-emerald-200" : "text-neutral-500 hover:bg-white/5 hover:text-neutral-200"}`}
+            >
+              {label}
+            </button>
+          ))}
+          <span className="ml-auto text-[10px] text-neutral-600">
+            {workflowMode === "plan" ? "Plan only · no file edits" : workflowMode === "debug" ? "Investigate · fix · explain" : "Implement · review · QA"}
+          </span>
+        </div>
+        <div className="flex gap-2">
         <div className="relative flex-1">
           <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 font-mono text-xs text-[var(--term-accent)]">
             &gt;
@@ -322,6 +346,7 @@ export default function ChatPanel({
         >
           {pending ? "RUNNING" : "EXEC"}
         </button>
+        </div>
       </form>
     </div>
   );

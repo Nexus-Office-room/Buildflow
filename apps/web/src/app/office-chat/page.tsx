@@ -1,0 +1,250 @@
+"use client";
+
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+import Link from "next/link";
+import NexusLogo from "@/components/brand/NexusLogo";
+
+interface Room {
+  id: string;
+  name: string;
+  invite_code: string;
+  created_by: string;
+  role?: string;
+}
+
+interface RoomMessage {
+  id: string;
+  sender_id: string;
+  content: string;
+  created_at: string;
+}
+
+export default function OfficeChatPage() {
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [activeRoomId, setActiveRoomId] = useState("");
+  const [messagesByRoom, setMessagesByRoom] = useState<Record<string, RoomMessage[]>>({});
+  const [roomName, setRoomName] = useState("");
+  const [inviteCode, setInviteCode] = useState("");
+  const [draft, setDraft] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+
+  const activeRoom = useMemo(() => rooms.find((room) => room.id === activeRoomId) ?? null, [rooms, activeRoomId]);
+  const messages = messagesByRoom[activeRoomId] ?? [];
+
+  const loadRooms = useCallback(async () => {
+    const response = await fetch("/api/office/rooms", { cache: "no-store" });
+    const data = await response.json().catch(() => null);
+    if (!response.ok) throw new Error(data?.error ?? "Could not load rooms.");
+    const nextRooms = (data?.rooms ?? []) as Room[];
+    setRooms(nextRooms);
+    setActiveRoomId((current) => nextRooms.some((room) => room.id === current) ? current : nextRooms[0]?.id ?? "");
+    return nextRooms;
+  }, []);
+
+  const joinRoom = useCallback(async (code: string) => {
+    const response = await fetch("/api/office/rooms/join", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ invite_code: code }),
+    });
+    const data = await response.json().catch(() => null);
+    if (!response.ok) throw new Error(data?.error ?? "Could not join that room.");
+    const joined = data.room as Room;
+    await loadRooms();
+    setActiveRoomId(joined.id);
+    setNotice(`You joined ${joined.name}.`);
+  }, [loadRooms]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const query = new URLSearchParams(window.location.search);
+        const invite = query.get("join");
+        if (invite) {
+          await joinRoom(invite);
+          window.history.replaceState({}, "", window.location.pathname);
+        }
+        if (!cancelled) await loadRooms();
+      } catch (err) {
+        if (!cancelled) setError(err instanceof Error ? err.message : "Could not load team chat.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [joinRoom, loadRooms]);
+
+  const loadMessages = useCallback(async (roomId: string) => {
+    const response = await fetch(`/api/office/rooms/${roomId}/messages`, { cache: "no-store" });
+    const data = await response.json().catch(() => null);
+    if (!response.ok) throw new Error(data?.error ?? "Could not load messages.");
+    setMessagesByRoom((previous) => ({ ...previous, [roomId]: data?.messages ?? [] }));
+  }, []);
+
+  useEffect(() => {
+    if (!activeRoomId) {
+      return;
+    }
+    let cancelled = false;
+    const refresh = async () => {
+      try {
+        const response = await fetch(`/api/office/rooms/${activeRoomId}/messages`, { cache: "no-store" });
+        const data = await response.json().catch(() => null);
+        if (!response.ok) throw new Error(data?.error ?? "Could not load messages.");
+        if (!cancelled) setMessagesByRoom((previous) => ({ ...previous, [activeRoomId]: data?.messages ?? [] }));
+      } catch (err) {
+        if (!cancelled) setError(err instanceof Error ? err.message : "Could not load messages.");
+      }
+    };
+    void refresh();
+    const timer = window.setInterval(refresh, 5000);
+    return () => { cancelled = true; window.clearInterval(timer); };
+  }, [activeRoomId]);
+
+  async function createRoom(event: FormEvent) {
+    event.preventDefault();
+    if (!roomName.trim() || busy) return;
+    setBusy(true);
+    setError("");
+    try {
+      const response = await fetch("/api/office/rooms", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: roomName.trim() }),
+      });
+      const data = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(data?.error ?? "Could not create room.");
+      setRoomName("");
+      await loadRooms();
+      setActiveRoomId(data.room.id);
+      setNotice("Room created. Share its invite link with your team.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not create room.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function submitInvite(event: FormEvent) {
+    event.preventDefault();
+    if (!inviteCode.trim() || busy) return;
+    setBusy(true);
+    setError("");
+    try {
+      await joinRoom(inviteCode.trim());
+      setInviteCode("");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not join room.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function sendMessage(event: FormEvent) {
+    event.preventDefault();
+    const content = draft.trim();
+    if (!content || !activeRoomId || busy) return;
+    setBusy(true);
+    setError("");
+    try {
+      const response = await fetch(`/api/office/rooms/${activeRoomId}/messages`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content }),
+      });
+      const data = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(data?.error ?? "Message could not be sent.");
+      setDraft("");
+      await loadMessages(activeRoomId);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Message could not be sent.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function copyInvite() {
+    if (!activeRoom) return;
+    try {
+      await navigator.clipboard.writeText(`${window.location.origin}/office-chat?join=${encodeURIComponent(activeRoom.invite_code)}`);
+      setNotice("Invite link copied.");
+    } catch {
+      setError("Clipboard access was blocked. Copy the invite code from room details.");
+    }
+  }
+
+  return (
+    <main className="min-h-screen px-4 py-6 text-neutral-100 sm:px-8 sm:py-10">
+      <div className="mx-auto max-w-6xl">
+        <header className="mb-6 flex items-center gap-4">
+          <NexusLogo surface="nav" />
+          <p className="hidden font-mono text-xs text-neutral-500 sm:block">/ team rooms</p>
+          <Link href="/projects" className="ml-auto font-mono text-xs text-neutral-400 hover:text-white">← Projects</Link>
+        </header>
+
+        <div className="mb-5">
+          <p className="font-mono text-[11px] uppercase tracking-[.2em] text-cyan-300">Office Group Chat</p>
+          <h1 className="mt-1 text-3xl font-semibold">Work together in a room</h1>
+          <p className="mt-2 max-w-2xl text-sm text-neutral-400">Create a room, share its invite link, and keep the team conversation in one place.</p>
+        </div>
+
+        {error && <p role="alert" className="mb-3 rounded-lg border border-red-500/30 bg-red-950/30 px-3 py-2 text-sm text-red-300">{error}{error === "Unauthorized" && <> <Link className="underline" href="/login">Sign in</Link></>}</p>}
+        {notice && <p role="status" className="mb-3 text-sm text-emerald-300">{notice}</p>}
+
+        <div className="grid min-h-[62vh] overflow-hidden rounded-2xl border border-white/10 bg-neutral-950/80 md:grid-cols-[280px_1fr]">
+          <aside className="border-b border-white/10 p-4 md:border-b-0 md:border-r">
+            <form onSubmit={createRoom} className="flex gap-2">
+              <input value={roomName} onChange={(e) => setRoomName(e.target.value)} maxLength={80} placeholder="New room name" aria-label="New room name" className="min-w-0 flex-1 rounded-md border border-white/10 bg-black/30 px-2 py-2 text-xs outline-none focus:border-cyan-300/50" />
+              <button disabled={busy || !roomName.trim()} className="rounded-md bg-cyan-300/15 px-3 text-xs text-cyan-100 disabled:opacity-40">Create</button>
+            </form>
+            <form onSubmit={submitInvite} className="mt-2 flex gap-2">
+              <input value={inviteCode} onChange={(e) => setInviteCode(e.target.value)} placeholder="Paste invite code" aria-label="Room invite code" className="min-w-0 flex-1 rounded-md border border-white/10 bg-black/30 px-2 py-2 text-xs outline-none focus:border-cyan-300/50" />
+              <button disabled={busy || !inviteCode.trim()} className="rounded-md border border-white/10 px-3 text-xs text-neutral-300 disabled:opacity-40">Join</button>
+            </form>
+            <h2 className="mb-2 mt-6 font-mono text-[10px] uppercase tracking-widest text-neutral-600">Your rooms</h2>
+            <div className="space-y-1">
+              {rooms.map((room) => (
+                <button key={room.id} onClick={() => setActiveRoomId(room.id)} className={`w-full rounded-lg px-3 py-2 text-left text-sm ${activeRoomId === room.id ? "bg-cyan-300/10 text-cyan-100" : "text-neutral-400 hover:bg-white/5 hover:text-white"}`}>
+                  <span className="mr-2 text-cyan-300">#</span>{room.name}
+                </button>
+              ))}
+              {!loading && rooms.length === 0 && <p className="px-3 py-3 text-xs leading-5 text-neutral-600">No rooms yet. Create one or join with an invite link.</p>}
+              {loading && <p className="px-3 py-3 text-xs text-neutral-600">Loading rooms…</p>}
+            </div>
+          </aside>
+
+          <section className="flex min-h-[55vh] flex-col">
+            {activeRoom ? (
+              <>
+                <header className="flex items-center gap-3 border-b border-white/10 px-4 py-3">
+                  <div className="min-w-0 flex-1"><h2 className="truncate font-medium"># {activeRoom.name}</h2><p className="text-[10px] text-neutral-600">Room chat · messages refresh every 5 seconds</p></div>
+                  <button onClick={copyInvite} className="rounded-md border border-white/10 px-3 py-1.5 text-xs text-neutral-300 hover:bg-white/5">Copy invite link</button>
+                </header>
+                <div className="flex-1 space-y-3 overflow-y-auto p-4">
+                  {messages.map((message) => (
+                    <article key={message.id} className="rounded-lg border border-white/5 bg-white/[.025] px-3 py-2">
+                      <div className="flex items-center gap-2"><span className="font-mono text-[10px] text-cyan-200">teammate · {message.sender_id.slice(0, 8)}</span><time className="text-[10px] text-neutral-600">{new Date(message.created_at).toLocaleString()}</time></div>
+                      <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-6 text-neutral-200">{message.content}</p>
+                    </article>
+                  ))}
+                  {messages.length === 0 && <p className="py-12 text-center text-sm text-neutral-600">This room is ready. Start the conversation.</p>}
+                </div>
+                <form onSubmit={sendMessage} className="flex gap-2 border-t border-white/10 p-3">
+                  <input value={draft} onChange={(e) => setDraft(e.target.value)} maxLength={8000} placeholder="Message your team…" aria-label="Message your team" className="min-w-0 flex-1 rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none focus:border-cyan-300/50" />
+                  <button disabled={busy || !draft.trim()} className="rounded-lg bg-cyan-300/15 px-4 text-sm text-cyan-100 disabled:opacity-40">Send</button>
+                </form>
+              </>
+            ) : (
+              <div className="grid flex-1 place-items-center p-8 text-center"><div><p className="text-3xl">✦</p><h2 className="mt-3 text-lg font-medium">A shared place for the conversation</h2><p className="mt-2 max-w-sm text-sm leading-6 text-neutral-500">Choose a room, create one, or join with an invite code.</p></div></div>
+            )}
+          </section>
+        </div>
+        <p className="mt-3 text-[11px] text-neutral-600">Room invites share the chat only. Project files, provider keys, and deployment access stay private to their owner.</p>
+      </div>
+    </main>
+  );
+}

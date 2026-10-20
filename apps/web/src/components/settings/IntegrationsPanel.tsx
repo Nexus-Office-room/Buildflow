@@ -20,6 +20,12 @@ const BASE_URL_PRESETS: { label: string; url: string; type: IntegrationType; hin
     type: "ai_provider",
     hint: "One key → hundreds of models from many providers",
   },
+  {
+    label: "DeepSeek",
+    url: "https://api.deepseek.com/v1",
+    type: "ai_provider",
+    hint: "DeepSeek models through its OpenAI-compatible API",
+  },
   { label: "Gemini", url: "https://generativelanguage.googleapis.com/v1beta/openai", type: "ai_provider", hint: "Single provider — Gemini models" },
   { label: "Together AI", url: "https://api.together.xyz/v1", type: "ai_provider" },
   { label: "OpenAI", url: "https://api.openai.com/v1", type: "ai_provider" },
@@ -134,7 +140,7 @@ export default function IntegrationsPanel({
         AI providers show up in the Model Router; hosting integrations show up in Deploy Desk.
       </p>
 
-      {showForm && <AddIntegrationForm onSubmit={handleAdd} error={error} />}
+      {showForm && <AddIntegrationForm projectId={projectId} onSubmit={handleAdd} error={error} />}
 
       <div className="grid gap-2 sm:grid-cols-2">
         {integrations.map((integration) => {
@@ -189,9 +195,11 @@ export default function IntegrationsPanel({
 }
 
 function AddIntegrationForm({
+  projectId,
   onSubmit,
   error,
 }: {
+  projectId: string;
   onSubmit: (data: {
     type: IntegrationType;
     name: string;
@@ -207,13 +215,39 @@ function AddIntegrationForm({
   const [apiKey, setApiKey] = useState("");
   const [extraConfig, setExtraConfig] = useState("");
   const [saving, setSaving] = useState(false);
+  const [verification, setVerification] = useState<{ signature: string; message: string; ok: boolean } | null>(null);
+  const [verifying, setVerifying] = useState(false);
 
   const presets = BASE_URL_PRESETS.filter((p) => p.type === type);
+  const signature = `${baseUrl.trim()}\n${apiKey.trim()}`;
+  const verified = verification?.ok === true && verification.signature === signature;
+
+  async function verifyKey() {
+    setVerification(null);
+    if (!baseUrl.trim() || !apiKey.trim()) {
+      setVerification({ signature, ok: false, message: "Enter a base URL and API key first." });
+      return;
+    }
+    setVerifying(true);
+    try {
+      const response = await fetch(`/api/projects/${projectId}/integrations/verify`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ base_url: baseUrl.trim(), api_key: apiKey.trim() }),
+      });
+      const result = await response.json().catch(() => null);
+      setVerification({ signature, ok: response.ok && result?.ok === true, message: result?.message ?? "Key verification failed." });
+    } catch {
+      setVerification({ signature, ok: false, message: "Could not verify the key. Check your connection." });
+    }
+    setVerifying(false);
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim()) return;
     if (type === "ai_provider" && !apiKey.trim()) return;
+    if (type === "ai_provider" && !verified) return;
     setSaving(true);
     await onSubmit({ type, name: name.trim(), base_url: baseUrl.trim(), api_key: apiKey.trim(), extra_config: extraConfig });
     setSaving(false);
@@ -248,6 +282,7 @@ function AddIntegrationForm({
               onClick={() => {
                 setBaseUrl(p.url);
                 if (!name) setName(p.label);
+                setVerification(null);
               }}
               className="rounded-full bg-white/5 px-2 py-1 text-[11px] text-neutral-400 hover:bg-white/10"
             >
@@ -258,17 +293,16 @@ function AddIntegrationForm({
       )}
       {type === "ai_provider" && (
         <p className="text-[11px] leading-relaxed text-neutral-600">
-          Tip: <span className="text-neutral-400">OpenRouter</span> is a single key giving
-          access to many providers&apos; models — its model list in the Model Router is
-          fetched live and is much longer than single-provider entries like Grok (xAI)
-          or Gemini. All entries speak the OpenAI-compatible chat completions API, so
-          Test Connection works the same way for each.
+          Tip: <span className="text-neutral-400">OpenRouter</span> exposes a live catalog
+          from many providers. <span className="text-neutral-400">DeepSeek</span> has its
+          own compatible API. Verify the key before saving; custom integrations use the
+          OpenAI-compatible chat completions format.
         </p>
       )}
 
       <input
         value={baseUrl}
-        onChange={(e) => setBaseUrl(e.target.value)}
+        onChange={(e) => { setBaseUrl(e.target.value); setVerification(null); }}
         placeholder={
           type === "hosting"
             ? "Deploy hook URL (e.g. https://api.netlify.com/build_hooks/xxxx)"
@@ -279,7 +313,7 @@ function AddIntegrationForm({
       <input
         type="password"
         value={apiKey}
-        onChange={(e) => setApiKey(e.target.value)}
+        onChange={(e) => { setApiKey(e.target.value); setVerification(null); }}
         placeholder={type === "hosting" ? "API key (optional for most deploy hooks)" : "API key"}
         className="w-full rounded border border-neutral-700 bg-neutral-950 px-2 py-1.5 text-sm text-neutral-100 outline-none focus:border-neutral-500"
       />
@@ -290,10 +324,27 @@ function AddIntegrationForm({
         rows={2}
         className="w-full rounded border border-neutral-700 bg-neutral-950 px-2 py-1.5 font-mono text-xs text-neutral-100 outline-none focus:border-neutral-500"
       />
+      {type === "ai_provider" && (
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={verifyKey}
+            disabled={verifying || !baseUrl.trim() || !apiKey.trim()}
+            className="rounded border border-neutral-700 px-3 py-1.5 text-xs text-neutral-200 hover:bg-white/5 disabled:opacity-50"
+          >
+            {verifying ? "Checking key…" : verified ? "Key verified ✓" : "Verify key"}
+          </button>
+          {verification && verification.signature === signature && (
+            <span role="status" className={`text-xs ${verification.ok ? "text-emerald-400" : "text-red-400"}`}>
+              {verification.message}
+            </span>
+          )}
+        </div>
+      )}
       {error && <p className="text-xs text-red-400">{error}</p>}
       <button
         type="submit"
-        disabled={saving}
+        disabled={saving || (type === "ai_provider" && !verified)}
         className="rounded bg-[var(--role-strategist)] px-3 py-1.5 text-xs font-medium text-white hover:opacity-90 disabled:opacity-50"
       >
         {saving ? "Saving…" : "Save Integration"}

@@ -59,6 +59,18 @@ export default async function ProjectsPage() {
               vault/
             </Link>
             <Link
+              href="/companions"
+              className="data-mono text-xs text-neutral-400 hover:text-[var(--term-accent)]"
+            >
+              companions/
+            </Link>
+            <Link
+              href="/office-chat"
+              className="data-mono text-xs text-neutral-400 hover:text-[var(--term-accent)]"
+            >
+              team-chat/
+            </Link>
+            <Link
               href="/account/profile"
               className="data-mono text-xs text-neutral-400 hover:text-[var(--term-accent)]"
             >
