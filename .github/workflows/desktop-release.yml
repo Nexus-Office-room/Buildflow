@@ -19,17 +19,21 @@ jobs:
           - name: Linux
             os: ubuntu-22.04
             args: "--bundles appimage,deb"
+            archive: Nexus-Office-Linux.zip
           - name: macOS Apple Silicon
             os: macos-latest
             target: aarch64-apple-darwin
             args: "--target aarch64-apple-darwin --bundles dmg"
+            archive: Nexus-Office-macOS-Apple-Silicon.zip
           - name: macOS Intel
             os: macos-latest
             target: x86_64-apple-darwin
             args: "--target x86_64-apple-darwin --bundles dmg"
+            archive: Nexus-Office-macOS-Intel.zip
           - name: Windows
             os: windows-latest
             args: "--bundles msi,nsis"
+            archive: Nexus-Office-Windows.zip
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -53,13 +57,38 @@ jobs:
       - name: Build and publish installers
         uses: tauri-apps/tauri-action@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.DOWNLOADS_REPO_TOKEN }}
           APPLE_SIGNING_IDENTITY: ${{ matrix.target != '' && '-' || '' }}
         with:
           projectPath: apps/desktop
+          owner: Nexus-Office-room
+          repo: Nexus-Office-Downloads
           tagName: ${{ github.ref_name }}
           releaseName: "Nexus Office Desktop ${{ github.ref_name }}"
-          releaseBody: "Install Nexus Office for Linux, macOS, or Windows. See the README for installation notes."
+          releaseBody: "Download the ZIP for your computer from the Nexus Office website. The archives contain installers and installation instructions."
+          releaseCommitish: main
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
+      - name: Package Linux installers into a ZIP
+        if: runner.os == 'Linux'
+        run: |
+          echo 'Ubuntu/Debian: install the .deb package with your software installer, or run sudo apt install ./Nexus.Office_*.deb. Other Linux distributions: run chmod +x *.AppImage && ./Nexus.Office_*.AppImage.' > "$RUNNER_TEMP/README.txt"
+          zip -j "$RUNNER_TEMP/${{ matrix.archive }}" "$RUNNER_TEMP/README.txt" apps/desktop/src-tauri/target/release/bundle/appimage/*.AppImage apps/desktop/src-tauri/target/release/bundle/deb/*.deb
+      - name: Package macOS installer into a ZIP
+        if: runner.os == 'macOS'
+        run: |
+          echo 'Open the .dmg file and drag Nexus Office into Applications. This build is unsigned and macOS may show a Gatekeeper warning.' > "$RUNNER_TEMP/README.txt"
+          zip -j "$RUNNER_TEMP/${{ matrix.archive }}" "$RUNNER_TEMP/README.txt" "apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle/dmg/"*.dmg
+      - name: Package Windows installers into a ZIP
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $bundle = 'apps/desktop/src-tauri/target/release/bundle'
+          $files = Get-ChildItem -Path $bundle -Recurse -File | Where-Object { $_.Extension -in '.exe', '.msi' }
+          Set-Content -Path "$env:RUNNER_TEMP/README.txt" -Value 'Run the .exe setup wizard, or open the .msi file with Windows Installer.'
+          Compress-Archive -Path ($files.FullName + "$env:RUNNER_TEMP/README.txt") -DestinationPath "$env:RUNNER_TEMP/${{ matrix.archive }}" -Force
+      - name: Upload ZIP to downloads release
+        env:
+          GH_TOKEN: ${{ secrets.DOWNLOADS_REPO_TOKEN }}
+        run: gh release upload "${{ github.ref_name }}" "$RUNNER_TEMP/${{ matrix.archive }}" --repo Nexus-Office-room/Nexus-Office-Downloads --clobber

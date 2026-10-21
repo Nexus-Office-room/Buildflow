@@ -4,26 +4,20 @@ const systems = [
   {
     name: "Linux",
     detail: "Ubuntu, Debian, and compatible Linux desktops",
-    downloads: [
-      { label: "AppImage", target: "linux-appimage" },
-      { label: "Debian package", target: "linux-deb" },
-    ],
+    downloads: [{ label: "Linux ZIP", target: "linux" }],
   },
   {
     name: "macOS",
-    detail: "Apple Silicon and Intel Macs",
+    detail: "Choose the ZIP that matches your Mac",
     downloads: [
-      { label: "Apple Silicon", target: "macos-arm64" },
-      { label: "Intel Mac", target: "macos-x64" },
+      { label: "Apple Silicon ZIP", target: "macos-arm64" },
+      { label: "Intel Mac ZIP", target: "macos-x64" },
     ],
   },
   {
     name: "Windows",
     detail: "Windows 10 and 11 PCs",
-    downloads: [
-      { label: "Installer (.exe)", target: "windows-exe" },
-      { label: "Installer (.msi)", target: "windows-msi" },
-    ],
+    downloads: [{ label: "Windows ZIP", target: "windows" }],
   },
 ];
 
@@ -34,7 +28,7 @@ export default function DownloadPage() {
         <Link href="/projects" className="font-mono text-sm text-neutral-500 hover:text-cyan-300">← Back to Nexus Office</Link>
         <p className="mt-12 font-mono text-xs uppercase tracking-[0.25em] text-cyan-300">Nexus Office</p>
         <h1 className="mt-3 text-4xl font-semibold tracking-tight">Install the desktop app</h1>
-        <p className="mt-4 max-w-2xl text-neutral-400">Use Nexus Office in its own desktop window on Linux, Mac, or Windows. The desktop app connects to the same secure Nexus Office account and needs an internet connection.</p>
+        <p className="mt-4 max-w-2xl text-neutral-400">Download the ZIP for your computer. Each ZIP contains the installer and quick installation steps. Nexus Office connects to your account and needs an internet connection.</p>
         <div className="mt-10 grid gap-3 sm:grid-cols-3">
           {systems.map((system) => (
             <article key={system.name} className="rounded-xl border border-neutral-800 bg-neutral-900/70 p-5">
