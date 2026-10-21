@@ -89,6 +89,13 @@ jobs:
           Set-Content -Path "$env:RUNNER_TEMP/README.txt" -Value 'Run the .exe setup wizard, or open the .msi file with Windows Installer.'
           Compress-Archive -Path ($files.FullName + "$env:RUNNER_TEMP/README.txt") -DestinationPath "$env:RUNNER_TEMP/${{ matrix.archive }}" -Force
       - name: Upload ZIP to downloads release
+        if: runner.os != 'Windows'
         env:
           GH_TOKEN: ${{ secrets.DOWNLOADS_REPO_TOKEN }}
         run: gh release upload "${{ github.ref_name }}" "$RUNNER_TEMP/${{ matrix.archive }}" --repo Nexus-Office-room/Nexus-Office-Downloads --clobber
+      - name: Upload Windows ZIP to downloads release
+        if: runner.os == 'Windows'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.DOWNLOADS_REPO_TOKEN }}
+        run: gh release upload "${{ github.ref_name }}" "$env:RUNNER_TEMP/${{ matrix.archive }}" --repo Nexus-Office-room/Nexus-Office-Downloads --clobber
