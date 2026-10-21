@@ -1,46 +1,25 @@
 import { NextResponse } from "next/server";
 
-const RELEASE_API = "https://api.github.com/repos/lekanay2005-coder/Nexus-Office/releases/latest";
+const BLOB_RELEASE_BASE = "https://pw5ksy69zcyunq3t.public.blob.vercel-storage.com/desktop/0.1.0";
 
-const assetMatchers: Record<string, (name: string) => boolean> = {
-  "linux-appimage": (name) => name.endsWith(".AppImage") && name.includes("amd64"),
-  "linux-deb": (name) => name.endsWith("_amd64.deb"),
-  "macos-arm64": (name) => name.endsWith("_aarch64.dmg"),
-  "macos-x64": (name) => name.endsWith("_x64.dmg"),
-  "windows-exe": (name) => name.endsWith("_x64-setup.exe"),
-  "windows-msi": (name) => name.endsWith("_x64_en-US.msi"),
-};
-
-type GitHubRelease = {
-  assets?: Array<{ name?: string; browser_download_url?: string }>;
+const assets: Record<string, string> = {
+  "linux-appimage": "Nexus.Office_0.1.0_amd64.AppImage",
+  "linux-deb": "Nexus.Office_0.1.0_amd64.deb",
+  "macos-arm64": "Nexus.Office_0.1.0_aarch64.dmg",
+  "macos-x64": "Nexus.Office_0.1.0_x64.dmg",
+  "windows-exe": "Nexus.Office_0.1.0_x64-setup.exe",
+  "windows-msi": "Nexus.Office_0.1.0_x64_en-US.msi",
 };
 
 export async function GET(_request: Request, context: { params: Promise<{ target: string }> }) {
   const { target } = await context.params;
-  const matchesAsset = assetMatchers[target];
-  if (!matchesAsset) {
+  const asset = assets[target];
+  if (!asset) {
     return NextResponse.json({ error: "Unknown installer." }, { status: 404 });
   }
 
-  let release: GitHubRelease;
-  try {
-    const response = await fetch(RELEASE_API, {
-      headers: { Accept: "application/vnd.github+json", "User-Agent": "Nexus-Office-Downloads" },
-      next: { revalidate: 300 },
-    });
-    if (!response.ok) throw new Error(`Release lookup returned ${response.status}`);
-    release = (await response.json()) as GitHubRelease;
-  } catch {
-    return NextResponse.json({ error: "Installers are temporarily unavailable. Please try again shortly." }, { status: 503 });
-  }
-
-  const asset = release.assets?.find(
-    (item) => typeof item.name === "string" && matchesAsset(item.name) && typeof item.browser_download_url === "string",
-  );
-  if (!asset?.browser_download_url || !asset.browser_download_url.startsWith("https://github.com/lekanay2005-coder/Nexus-Office/releases/download/")) {
-    return NextResponse.json({ error: "This installer is not available in the latest release." }, { status: 404 });
-  }
-
-  // Send users straight to the selected installer file; never show the release page or source archives.
-  return NextResponse.redirect(asset.browser_download_url, { status: 302 });
+  const url = new URL(`${BLOB_RELEASE_BASE}/${encodeURIComponent(asset)}`);
+  url.searchParams.set("download", asset);
+  // Keep the site as the download entry point; the public file host serves only installer binaries.
+  return NextResponse.redirect(url, { status: 302 });
 }
