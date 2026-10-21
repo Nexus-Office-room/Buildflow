@@ -201,16 +201,14 @@ export default function OfficeWorkspace({
                 projectId={project.id}
                 initialRoleModels={initialRoleModels}
                 initialApiKeyProviders={initialApiKeyProviders}
-                customIntegrationNames={initialIntegrations
-                  .filter((i) => i.type === "ai_provider")
-                  .map((i) => i.name)}
+                initialIntegrations={initialIntegrations}
               />
             </div>
             <div className="mx-auto max-w-2xl px-6">
               <ConnectionsPanel initialConfigured={initialConnectionProviders} />
             </div>
             <div className="mx-auto max-w-2xl px-6 pb-8">
-              <IntegrationsPanel projectId={project.id} initialIntegrations={initialIntegrations} />
+              <IntegrationsPanel projectId={project.id} initialIntegrations={initialIntegrations.filter((i) => i.type === "hosting")} />
             </div>
           </div>
         )}
@@ -306,6 +304,14 @@ function UserAvatarMenu({
               role="menuitem"
             >
               ~/account
+            </Link>
+            <Link
+              href="/download"
+              onClick={onClose}
+              className="block px-3 py-1.5 font-mono text-xs text-neutral-300 hover:bg-neutral-800 hover:text-[var(--term-accent)]"
+              role="menuitem"
+            >
+              ~/desktop-app
             </Link>
             <form action="/auth/signout" method="post" className="m-0">
               <button

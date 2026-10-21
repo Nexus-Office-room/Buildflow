@@ -7,37 +7,6 @@ import { createNexusClient } from "@nexus-office/api-client";
 
 const nexus = createNexusClient();
 
-const BASE_URL_PRESETS: { label: string; url: string; type: IntegrationType; hint?: string }[] = [
-  {
-    label: "Grok (xAI)",
-    url: "https://api.x.ai/v1",
-    type: "ai_provider",
-    hint: "Single provider — Grok models only",
-  },
-  {
-    label: "OpenRouter",
-    url: "https://openrouter.ai/api/v1",
-    type: "ai_provider",
-    hint: "One key → hundreds of models from many providers",
-  },
-  {
-    label: "DeepSeek",
-    url: "https://api.deepseek.com/v1",
-    type: "ai_provider",
-    hint: "DeepSeek models through its OpenAI-compatible API",
-  },
-  { label: "Groq", url: "https://api.groq.com/openai/v1", type: "ai_provider", hint: "Fast inference; availability and pricing depend on model" },
-  { label: "Mistral AI", url: "https://api.mistral.ai/v1", type: "ai_provider", hint: "Mistral models through an OpenAI-compatible API" },
-  { label: "Fireworks AI", url: "https://api.fireworks.ai/inference/v1", type: "ai_provider", hint: "Hosted open models; usage-based pricing" },
-  { label: "Cerebras", url: "https://api.cerebras.ai/v1", type: "ai_provider", hint: "Fast inference; plans and free access can vary" },
-  { label: "Perplexity", url: "https://api.perplexity.ai", type: "ai_provider", hint: "Perplexity models through an OpenAI-compatible API" },
-  { label: "Hugging Face", url: "https://router.huggingface.co/v1", type: "ai_provider", hint: "Model access through Hugging Face Inference Providers" },
-  { label: "Gemini", url: "https://generativelanguage.googleapis.com/v1beta/openai", type: "ai_provider", hint: "Single provider — Gemini models" },
-  { label: "Together AI", url: "https://api.together.xyz/v1", type: "ai_provider" },
-  { label: "OpenAI", url: "https://api.openai.com/v1", type: "ai_provider" },
-  { label: "Anthropic", url: "https://api.anthropic.com/v1", type: "ai_provider" },
-];
-
 export default function IntegrationsPanel({
   projectId,
   initialIntegrations,
@@ -45,7 +14,9 @@ export default function IntegrationsPanel({
   projectId: string;
   initialIntegrations: Integration[];
 }) {
-  const [integrations, setIntegrations] = useState<Integration[]>(initialIntegrations);
+  const [integrations, setIntegrations] = useState<Integration[]>(
+    initialIntegrations.filter((integration) => integration.type === "hosting"),
+  );
   const [showForm, setShowForm] = useState(false);
   const [testResults, setTestResults] = useState<Record<string, { ok: boolean; message: string }>>(
     {}
@@ -133,20 +104,19 @@ export default function IntegrationsPanel({
     <section>
       {dialogEl}
       <div className="mb-1 flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Integrations</h2>
+        <h2 className="text-lg font-semibold">Hosting integrations</h2>
         <button
           onClick={() => setShowForm((v) => !v)}
           className="rounded bg-[var(--role-strategist)] px-3 py-1.5 text-xs font-medium text-white hover:opacity-90"
         >
-          {showForm ? "Cancel" : "Add Integration"}
+          {showForm ? "Cancel" : "Add hosting service"}
         </button>
       </div>
       <p className="mb-4 text-sm text-neutral-500">
-        Add any AI provider or hosting service by name and base URL — no code changes needed.
-        AI providers show up in the Model Router; hosting integrations show up in Deploy Desk.
+        Connect deploy hooks and hosting services here. Add AI provider tokens in one place under Model Router.
       </p>
 
-      {showForm && <AddIntegrationForm projectId={projectId} onSubmit={handleAdd} error={error} />}
+      {showForm && <AddIntegrationForm onSubmit={handleAdd} error={error} />}
 
       <div className="space-y-2">
         {integrations.map((integration) => {
@@ -161,7 +131,7 @@ export default function IntegrationsPanel({
                   <div className="flex items-center gap-2">
                     <span className="truncate text-sm font-medium">{integration.name}</span>
                     <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] uppercase text-neutral-400">
-                      {integration.type === "ai_provider" ? "AI" : "Hosting"}
+                      Hosting
                     </span>
                   </div>
                   <p className="truncate text-xs text-neutral-500">
@@ -193,7 +163,7 @@ export default function IntegrationsPanel({
           );
         })}
         {integrations.length === 0 && !showForm && (
-          <p className="text-sm text-neutral-500">No integrations added yet.</p>
+          <p className="text-sm text-neutral-500">No hosting integrations added yet.</p>
         )}
       </div>
     </section>
@@ -201,11 +171,9 @@ export default function IntegrationsPanel({
 }
 
 function AddIntegrationForm({
-  projectId,
   onSubmit,
   error,
 }: {
-  projectId: string;
   onSubmit: (data: {
     type: IntegrationType;
     name: string;
@@ -215,45 +183,17 @@ function AddIntegrationForm({
   }) => void;
   error: string | null;
 }) {
-  const [type, setType] = useState<IntegrationType>("ai_provider");
+  const type: IntegrationType = "hosting";
   const [name, setName] = useState("");
   const [baseUrl, setBaseUrl] = useState("");
   const [apiKey, setApiKey] = useState("");
   const [extraConfig, setExtraConfig] = useState("");
   const [saving, setSaving] = useState(false);
-  const [verification, setVerification] = useState<{ signature: string; message: string; ok: boolean } | null>(null);
-  const [verifying, setVerifying] = useState(false);
-
-  const presets = BASE_URL_PRESETS.filter((p) => p.type === type);
-  const signature = `${baseUrl.trim()}\n${apiKey.trim()}`;
-  const verified = verification?.ok === true && verification.signature === signature;
-
-  async function verifyKey() {
-    setVerification(null);
-    if (!baseUrl.trim() || !apiKey.trim()) {
-      setVerification({ signature, ok: false, message: "Enter a base URL and API key first." });
-      return;
-    }
-    setVerifying(true);
-    try {
-      const response = await fetch(`/api/projects/${projectId}/integrations/verify`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ base_url: baseUrl.trim(), api_key: apiKey.trim() }),
-      });
-      const result = await response.json().catch(() => null);
-      setVerification({ signature, ok: response.ok && result?.ok === true, message: result?.message ?? "Key verification failed." });
-    } catch {
-      setVerification({ signature, ok: false, message: "Could not verify the key. Check your connection." });
-    }
-    setVerifying(false);
-  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim()) return;
-    if (type === "ai_provider" && !apiKey.trim()) return;
-    if (type === "ai_provider" && !verified) return;
+    if (!baseUrl.trim()) return;
     setSaving(true);
     await onSubmit({ type, name: name.trim(), base_url: baseUrl.trim(), api_key: apiKey.trim(), extra_config: extraConfig });
     setSaving(false);
@@ -262,65 +202,25 @@ function AddIntegrationForm({
   return (
     <form onSubmit={handleSubmit} className="glass-panel mb-4 space-y-2 rounded-lg p-4">
       <div className="flex gap-2">
-        <select
-          value={type}
-          onChange={(e) => setType(e.target.value as IntegrationType)}
-          className="rounded border border-neutral-700 bg-neutral-950 px-2 py-1.5 text-sm text-neutral-100"
-        >
-          <option value="ai_provider">AI Provider</option>
-          <option value="hosting">Hosting</option>
-        </select>
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder='Name (e.g. "OpenRouter" or "Netlify")'
+          placeholder='Hosting service name (e.g. "Netlify")'
           className="flex-1 rounded border border-neutral-700 bg-neutral-950 px-2 py-1.5 text-sm text-neutral-100 outline-none focus:border-neutral-500"
         />
       </div>
 
-      {presets.length > 0 && (
-        <div className="flex flex-wrap gap-1.5">
-          {presets.map((p) => (
-            <button
-              type="button"
-              key={p.label}
-              title={p.hint}
-              onClick={() => {
-                setBaseUrl(p.url);
-                if (!name) setName(p.label);
-                setVerification(null);
-              }}
-              className="rounded-full bg-white/5 px-2 py-1 text-[11px] text-neutral-400 hover:bg-white/10"
-            >
-              {p.label}
-            </button>
-          ))}
-        </div>
-      )}
-      {type === "ai_provider" && (
-        <p className="text-[11px] leading-relaxed text-neutral-600">
-          Tip: <span className="text-neutral-400">OpenRouter</span> exposes a live catalog
-          from many providers. <span className="text-neutral-400">DeepSeek</span> has its
-          own compatible API. Verify the key before saving; custom integrations use the
-          OpenAI-compatible chat completions format.
-        </p>
-      )}
-
       <input
         value={baseUrl}
-        onChange={(e) => { setBaseUrl(e.target.value); setVerification(null); }}
-        placeholder={
-          type === "hosting"
-            ? "Deploy hook URL (e.g. https://api.netlify.com/build_hooks/xxxx)"
-            : "Base URL (e.g. https://openrouter.ai/api/v1)"
-        }
+        onChange={(e) => setBaseUrl(e.target.value)}
+        placeholder="Deploy hook URL (e.g. https://api.netlify.com/build_hooks/xxxx)"
         className="w-full rounded border border-neutral-700 bg-neutral-950 px-2 py-1.5 text-sm text-neutral-100 outline-none focus:border-neutral-500"
       />
       <input
         type="password"
         value={apiKey}
-        onChange={(e) => { setApiKey(e.target.value); setVerification(null); }}
-        placeholder={type === "hosting" ? "API key (optional for most deploy hooks)" : "API key"}
+        onChange={(e) => setApiKey(e.target.value)}
+        placeholder="API key (optional for most deploy hooks)"
         className="w-full rounded border border-neutral-700 bg-neutral-950 px-2 py-1.5 text-sm text-neutral-100 outline-none focus:border-neutral-500"
       />
       <textarea
@@ -330,30 +230,13 @@ function AddIntegrationForm({
         rows={2}
         className="w-full rounded border border-neutral-700 bg-neutral-950 px-2 py-1.5 font-mono text-xs text-neutral-100 outline-none focus:border-neutral-500"
       />
-      {type === "ai_provider" && (
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={verifyKey}
-            disabled={verifying || !baseUrl.trim() || !apiKey.trim()}
-            className="rounded border border-neutral-700 px-3 py-1.5 text-xs text-neutral-200 hover:bg-white/5 disabled:opacity-50"
-          >
-            {verifying ? "Checking key…" : verified ? "Key verified ✓" : "Verify key"}
-          </button>
-          {verification && verification.signature === signature && (
-            <span role="status" className={`text-xs ${verification.ok ? "text-emerald-400" : "text-red-400"}`}>
-              {verification.message}
-            </span>
-          )}
-        </div>
-      )}
       {error && <p className="text-xs text-red-400">{error}</p>}
       <button
         type="submit"
-        disabled={saving || (type === "ai_provider" && !verified)}
+        disabled={saving || !name.trim() || !baseUrl.trim()}
         className="rounded bg-[var(--role-strategist)] px-3 py-1.5 text-xs font-medium text-white hover:opacity-90 disabled:opacity-50"
       >
-        {saving ? "Saving…" : "Save Integration"}
+        {saving ? "Saving…" : "Save hosting integration"}
       </button>
     </form>
   );
