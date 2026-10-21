@@ -1,11 +1,30 @@
 import Link from "next/link";
 
-const RELEASES = "https://github.com/lekanay2005-coder/Nexus-Office/releases/latest";
-
 const systems = [
-  { name: "Linux", formats: "AppImage or .deb", detail: "Ubuntu, Debian, and compatible Linux desktops" },
-  { name: "macOS", formats: ".dmg", detail: "Apple Silicon and Intel Macs" },
-  { name: "Windows", formats: ".msi or .exe", detail: "Windows 10 and 11 PCs" },
+  {
+    name: "Linux",
+    detail: "Ubuntu, Debian, and compatible Linux desktops",
+    downloads: [
+      { label: "AppImage", target: "linux-appimage" },
+      { label: "Debian package", target: "linux-deb" },
+    ],
+  },
+  {
+    name: "macOS",
+    detail: "Apple Silicon and Intel Macs",
+    downloads: [
+      { label: "Apple Silicon", target: "macos-arm64" },
+      { label: "Intel Mac", target: "macos-x64" },
+    ],
+  },
+  {
+    name: "Windows",
+    detail: "Windows 10 and 11 PCs",
+    downloads: [
+      { label: "Installer (.exe)", target: "windows-exe" },
+      { label: "Installer (.msi)", target: "windows-msi" },
+    ],
+  },
 ];
 
 export default function DownloadPage() {
@@ -20,12 +39,21 @@ export default function DownloadPage() {
           {systems.map((system) => (
             <article key={system.name} className="rounded-xl border border-neutral-800 bg-neutral-900/70 p-5">
               <h2 className="text-lg font-medium">{system.name}</h2>
-              <p className="mt-2 text-sm text-cyan-300">{system.formats}</p>
               <p className="mt-3 text-xs leading-relaxed text-neutral-500">{system.detail}</p>
+              <div className="mt-5 flex flex-col items-start gap-3">
+                {system.downloads.map((download) => (
+                  <a
+                    key={download.target}
+                    href={`/api/download/${download.target}`}
+                    className="text-sm font-medium text-cyan-300 underline decoration-cyan-300/40 underline-offset-4 hover:text-cyan-200"
+                  >
+                    Download {download.label}
+                  </a>
+                ))}
+              </div>
             </article>
           ))}
         </div>
-        <a href={RELEASES} className="mt-8 inline-flex rounded-lg bg-cyan-500 px-5 py-3 text-sm font-semibold text-slate-950 hover:bg-cyan-400">Get the latest installers</a>
         <p className="mt-5 text-xs leading-relaxed text-neutral-600">macOS builds are currently unsigned and may show a Gatekeeper warning. Signed and notarized Mac releases require Apple Developer credentials.</p>
       </div>
     </main>

@@ -10,4 +10,4 @@ Linux builds need WebKitGTK 4.1, GTK 3, librsvg, and appindicator development pa
 
 ## Install
 
-Download the installer for your system from [GitHub Releases](https://github.com/lekanay2005-coder/Nexus-Office/releases/latest). macOS packages use an ad-hoc signature and are not notarized; macOS may show a Gatekeeper warning until the app is signed and notarized with Apple Developer credentials.
+Download the installer for your system from the [Nexus Office download page](https://nexus-office-pi.vercel.app/download). macOS packages use an ad-hoc signature and are not notarized; macOS may show a Gatekeeper warning until the app is signed and notarized with Apple Developer credentials.
