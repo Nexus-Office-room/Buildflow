@@ -5,7 +5,10 @@ import { ROLES, type Role } from "@/types/db";
 import { ROLE_LABELS, ROLE_COLORS } from "@/lib/pipeline/roles";
 import { MODEL_CATALOG, PROVIDER_LABELS } from "@/lib/providers/catalog";
 import { DEFAULT_PROVIDER_CONFIG, type ProviderName } from "@/lib/providers";
+import { AI_PROVIDER_CHOICES, DIRECT_AI_PROVIDER_VALUES } from "@/lib/providers/connections";
 import { createNexusClient } from "@nexus-office/api-client";
+import { useApprovalFlow } from "@/components/common/ApprovalDialog";
+import type { Integration } from "@/types/db";
 
 const nexus = createNexusClient();
 
@@ -19,7 +22,10 @@ const PROVIDERS: ProviderName[] = ["anthropic", "openai", "google"];
 const BUILT_IN_PROVIDERS = new Set<string>(PROVIDERS);
 
 // Gateways whose model list we fetch live instead of hardcoding.
-const DYNAMIC_MODEL_GATEWAYS = new Set(["openrouter", "deepseek"]);
+const DYNAMIC_MODEL_GATEWAYS = new Set(
+  AI_PROVIDER_CHOICES.filter((choice) => choice.kind === "compatible")
+    .map((choice) => choice.value.toLowerCase()),
+);
 
 function isDynamicGateway(name: string): boolean {
   return DYNAMIC_MODEL_GATEWAYS.has(name.toLowerCase());
@@ -46,12 +52,12 @@ export default function ModelRouterPanel({
   projectId,
   initialRoleModels,
   initialApiKeyProviders,
-  customIntegrationNames,
+  initialIntegrations,
 }: {
   projectId: string;
   initialRoleModels: RoleModelRow[];
   initialApiKeyProviders: ProviderName[];
-  customIntegrationNames: string[];
+  initialIntegrations: Integration[];
 }) {
   const [assignments, setAssignments] = useState<Record<Role, RoleModelRow>>(() => {
     const map = {} as Record<Role, RoleModelRow>;
@@ -66,16 +72,24 @@ export default function ModelRouterPanel({
     return map;
   });
   const [savingRole, setSavingRole] = useState<Role | null>(null);
-  const [configuredKeys, setConfiguredKeys] = useState<Set<ProviderName>>(
+  const [configuredKeys, setConfiguredKeys] = useState<Set<string>>(
     new Set(initialApiKeyProviders)
   );
-  const [keyDrafts, setKeyDrafts] = useState<Record<ProviderName, string>>({
-    anthropic: "",
-    openai: "",
-    google: "",
-  });
-  const [savingKey, setSavingKey] = useState<ProviderName | null>(null);
+  const [providerIntegrations, setProviderIntegrations] = useState(
+    initialIntegrations.filter((integration) => integration.type === "ai_provider"),
+  );
+  const [customProviderNames, setCustomProviderNames] = useState(
+    initialIntegrations.filter((integration) => integration.type === "ai_provider").map((integration) => integration.name),
+  );
+  const [selectedProvider, setSelectedProvider] = useState(AI_PROVIDER_CHOICES[0].value);
+  const [keyDraft, setKeyDraft] = useState("");
+  const [customName, setCustomName] = useState("");
+  const [customBaseUrl, setCustomBaseUrl] = useState("");
+  const [savingKey, setSavingKey] = useState(false);
+  const [removingProvider, setRemovingProvider] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [keyStatus, setKeyStatus] = useState<string | null>(null);
+  const { fetchWithApproval, dialogEl } = useApprovalFlow(projectId);
 
   // Live model lists for dynamic gateways (OpenRouter), keyed by integration
   // name. Fetched once per unique gateway the project has an integration for.
@@ -84,7 +98,7 @@ export default function ModelRouterPanel({
   >({});
 
   useEffect(() => {
-    const gateways = customIntegrationNames.filter(isDynamicGateway);
+    const gateways = customProviderNames.filter(isDynamicGateway);
     for (const gw of gateways) {
       setDynamicModels((prev) => {
         if (prev[gw]) return prev;
@@ -114,7 +128,7 @@ export default function ModelRouterPanel({
         return { ...prev, [gw]: { models: [], loading: true } };
       });
     }
-  }, [customIntegrationNames, projectId]);
+  }, [customProviderNames, projectId]);
 
   async function saveAssignment(role: Role, provider: string, model: string) {
     setSavingRole(role);
@@ -133,35 +147,78 @@ export default function ModelRouterPanel({
     setSavingRole(null);
   }
 
-  async function saveKey(provider: ProviderName) {
-    const key = keyDrafts[provider].trim();
+  async function saveKey(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const choice = AI_PROVIDER_CHOICES.find((item) => item.value === selectedProvider);
+    const key = keyDraft.trim();
     if (!key) return;
-    setSavingKey(provider);
+    setSavingKey(true);
     setError(null);
+    setKeyStatus(null);
 
     try {
-      await nexus.saveApiKey(provider, key);
-      setConfiguredKeys((prev) => new Set(prev).add(provider));
-      setKeyDrafts((prev) => ({ ...prev, [provider]: "" }));
+      if (!choice) throw new Error("Choose a provider first.");
+      if (choice.kind === "built-in") {
+        await nexus.saveApiKey(choice.value, key);
+        setConfiguredKeys((prev) => new Set(prev).add(choice.value));
+      } else {
+        const name = choice.kind === "custom" ? customName.trim() : choice.value;
+        const baseUrl = choice.kind === "custom" ? customBaseUrl.trim() : choice.baseUrl;
+        if (!name || !baseUrl) throw new Error("Enter the provider name and API URL.");
+
+        const verification = await fetch(`/api/projects/${projectId}/integrations/verify`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ base_url: baseUrl, api_key: key }),
+        });
+        const verificationResult = await verification.json().catch(() => null);
+        if (!verification.ok || verificationResult?.ok !== true) {
+          throw new Error(verificationResult?.message ?? "The provider could not verify this key.");
+        }
+
+        const { data } = await nexus.client.request<{ integration?: Integration; error?: string }>(
+          "POST",
+          `/api/projects/${projectId}/integrations`,
+          { type: "ai_provider", name, base_url: baseUrl, api_key: key, extra_config: {} },
+        );
+        if (!data?.integration) throw new Error(data?.error ?? "Could not save this provider.");
+        setProviderIntegrations((prev) => [...prev.filter((item) => item.name !== name), data.integration!]);
+        setCustomProviderNames((prev) => prev.includes(name) ? prev : [...prev, name]);
+      }
+      setKeyDraft("");
+      setKeyStatus(`${choice.label} key saved. It is ready to select in the role router.`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : `Failed to save ${PROVIDER_LABELS[provider]} key`);
+      setError(err instanceof Error ? err.message : "Failed to save provider key");
     }
-    setSavingKey(null);
+    setSavingKey(false);
   }
 
-  async function removeKey(provider: ProviderName) {
-    setSavingKey(provider);
+  async function removeKey(provider: string) {
+    setRemovingProvider(provider);
+    const integration = providerIntegrations.find((item) => item.name === provider);
     try {
-      await nexus.deleteApiKey(provider);
-      setConfiguredKeys((prev) => {
-        const next = new Set(prev);
-        next.delete(provider);
-        return next;
-      });
+      if (integration) {
+        const { res, data } = await fetchWithApproval(
+          `/api/projects/${projectId}/integrations/${integration.id}`,
+          { method: "DELETE" },
+        );
+        if (data.cancelled) return;
+        if (!res.ok) throw new Error("Could not remove this provider.");
+        setProviderIntegrations((prev) => prev.filter((item) => item.id !== integration.id));
+        setCustomProviderNames((prev) => prev.filter((name) => name !== provider));
+      } else {
+        await nexus.deleteApiKey(provider);
+        setConfiguredKeys((prev) => {
+          const next = new Set(prev);
+          next.delete(provider);
+          return next;
+        });
+      }
     } catch {
-      // key stays listed; user can retry
+      setError(`Could not remove ${provider}. Please try again.`);
+    } finally {
+      setRemovingProvider(null);
     }
-    setSavingKey(null);
   }
 
   return (
@@ -224,9 +281,9 @@ export default function ModelRouterPanel({
                     ))}
                     <option value={CODEBUFF_PROVIDER}>Codebuff agents</option>
                   </optgroup>
-                  {customIntegrationNames.length > 0 && (
+                  {customProviderNames.length > 0 && (
                     <optgroup label="Integrations">
-                      {customIntegrationNames.map((name) => (
+                      {customProviderNames.map((name) => (
                         <option key={name} value={name}>
                           {name}
                         </option>
@@ -324,60 +381,78 @@ export default function ModelRouterPanel({
       </section>
 
       <section>
-        <h2 className="mb-1 text-lg font-semibold">API Keys</h2>
+        {dialogEl}
+        <h2 className="mb-1 text-lg font-semibold">AI providers &amp; tokens</h2>
         <p className="mb-4 text-sm text-neutral-500">
-          Your keys are encrypted at rest and only used to call that provider on your
-          behalf. Leave a provider unconfigured to fall back to the app&apos;s default key.
+          Choose a provider, paste its token, and save it here. Keys are encrypted. Some providers offer free tiers or free models; others charge per use. Check the provider&apos;s current terms and pricing.
         </p>
         <div className="space-y-2">
-          {PROVIDERS.map((provider) => {
-          const configured = configuredKeys.has(provider);
-            return (
-              <div
-                key={provider}
-                className="flex items-center gap-2 rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2"
+          {[
+            ...Array.from(configuredKeys).map((provider) => ({ provider, label: PROVIDER_LABELS[provider as ProviderName] ?? provider })),
+            ...providerIntegrations.map((integration) => ({ provider: integration.name, label: integration.name })),
+          ].map(({ provider, label }) => (
+            <div key={provider} className="flex items-center gap-2 rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2">
+              <span className="min-w-0 flex-1 truncate text-sm font-medium">{label}</span>
+              <span className="text-xs text-emerald-400">Token saved</span>
+              <button
+                type="button"
+                onClick={() => removeKey(provider)}
+                disabled={removingProvider === provider}
+                className="rounded bg-neutral-800 px-2 py-1 text-xs text-neutral-300 hover:bg-neutral-700 disabled:opacity-50"
               >
-                <span className="w-20 shrink-0 text-sm font-medium">
-                  {PROVIDER_LABELS[provider]}
-                </span>
-                {configured ? (
-                  <>
-                    <span className="flex-1 text-xs text-emerald-400">Key configured</span>
-                    <button
-                      onClick={() => removeKey(provider)}
-                      disabled={savingKey === provider}
-                      className="rounded bg-neutral-800 px-2 py-1 text-xs text-neutral-300 hover:bg-neutral-700 disabled:opacity-50"
-                    >
-                      Remove
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <input
-                      type="password"
-                      placeholder={`${PROVIDER_LABELS[provider]} API key`}
-                      value={keyDrafts[provider]}
-                      onChange={(e) =>
-                        setKeyDrafts((prev) => ({ ...prev, [provider]: e.target.value }))
-                      }
-                      className="flex-1 rounded border border-neutral-700 bg-neutral-950 px-2 py-1 text-xs text-neutral-100 outline-none focus:border-neutral-500"
-                    />
-                    <button
-                      onClick={() => saveKey(provider)}
-                      disabled={savingKey === provider || !keyDrafts[provider].trim()}
-                      className="rounded bg-violet-600 px-2 py-1 text-xs font-medium text-white hover:bg-violet-500 disabled:opacity-50"
-                    >
-                      Save
-                    </button>
-                  </>
-                )}
-              </div>
-            );
-          })}
+                {removingProvider === provider ? "Removing…" : "Remove"}
+              </button>
+            </div>
+          ))}
+          {configuredKeys.size === 0 && providerIntegrations.length === 0 && (
+            <p className="rounded-lg border border-dashed border-neutral-800 px-3 py-4 text-xs text-neutral-500">No provider tokens saved yet. Select a provider below to add one.</p>
+          )}
         </div>
+        <form onSubmit={saveKey} className="mt-4 space-y-3 rounded-lg border border-neutral-800 bg-neutral-900 p-4">
+          <label className="block space-y-1.5">
+            <span className="text-xs font-medium text-neutral-300">AI provider</span>
+            <select
+              value={selectedProvider}
+              onChange={(event) => setSelectedProvider(event.target.value)}
+              className="w-full rounded border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm text-neutral-100"
+            >
+              {AI_PROVIDER_CHOICES.map((choice) => <option key={choice.value} value={choice.value}>{choice.label}</option>)}
+            </select>
+          </label>
+          {selectedProvider === "__custom" && (
+            <>
+              <label className="block space-y-1.5">
+                <span className="text-xs font-medium text-neutral-300">Provider name</span>
+                <input value={customName} onChange={(event) => setCustomName(event.target.value)} required placeholder="e.g. My AI provider" className="w-full rounded border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm text-neutral-100" />
+              </label>
+              <label className="block space-y-1.5">
+                <span className="text-xs font-medium text-neutral-300">OpenAI-compatible API URL</span>
+                <input value={customBaseUrl} onChange={(event) => setCustomBaseUrl(event.target.value)} required type="url" placeholder="https://api.example.com/v1" className="w-full rounded border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm text-neutral-100" />
+              </label>
+            </>
+          )}
+          <label className="block space-y-1.5">
+            <span className="text-xs font-medium text-neutral-300">API token</span>
+            <input
+              type="password"
+              autoComplete="new-password"
+              value={keyDraft}
+              onChange={(event) => setKeyDraft(event.target.value)}
+              required
+              placeholder="Paste the token for the selected provider"
+              className="w-full rounded border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm text-neutral-100 outline-none focus:border-violet-500"
+            />
+          </label>
+          {selectedProvider !== "__custom" && (
+            <p className="text-xs text-neutral-500">{AI_PROVIDER_CHOICES.find((choice) => choice.value === selectedProvider)?.note}</p>
+          )}
+          <button type="submit" disabled={savingKey || !keyDraft.trim()} className="w-full rounded bg-violet-600 px-3 py-2 text-sm font-medium text-white hover:bg-violet-500 disabled:opacity-50">
+            {savingKey ? "Saving…" : selectedProvider === "__custom" || !DIRECT_AI_PROVIDER_VALUES.has(selectedProvider) ? "Verify & save token" : "Save token"}
+          </button>
+          {keyStatus && <p role="status" className="text-xs text-emerald-400">{keyStatus}</p>}
+        </form>
+        {error && <p role="alert" className="mt-3 text-sm text-red-400">{error}</p>}
       </section>
-
-      {error && <p className="text-sm text-red-400">{error}</p>}
     </div>
   );
 }

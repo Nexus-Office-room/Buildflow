@@ -45,4 +45,5 @@ next-env.d.ts
 # cli
 .nexus-token
 /apps/cli/dist/
+/apps/desktop/src-tauri/target/
 /dist
