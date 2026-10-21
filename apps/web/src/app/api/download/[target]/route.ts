@@ -16,7 +16,18 @@ export async function GET(_request: Request, context: { params: Promise<{ target
     return NextResponse.json({ error: "Unknown download." }, { status: 404 });
   }
 
-  // The public downloads repository contains installers only; application source stays private.
+  // Proxy the public installer asset so download clicks remain on the Nexus Office domain.
   const url = `${RELEASE_BASE}/${encodeURIComponent(archive)}`;
-  return NextResponse.redirect(url, { status: 302 });
+  const upstream = await fetch(url, { cache: "no-store", redirect: "follow" });
+  if (!upstream.ok || !upstream.body) {
+    return NextResponse.json({ error: "This download is temporarily unavailable." }, { status: 502 });
+  }
+
+  return new Response(upstream.body, {
+    headers: {
+      "Content-Type": "application/zip",
+      "Content-Disposition": `attachment; filename="${archive}"`,
+      "Cache-Control": "public, max-age=3600, s-maxage=3600",
+    },
+  });
 }
