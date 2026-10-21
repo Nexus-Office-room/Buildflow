@@ -73,8 +73,8 @@ jobs:
       - name: Package Linux installers into a ZIP
         if: runner.os == 'Linux'
         run: |
-          echo 'Ubuntu/Debian: install the .deb package with your software installer, or run sudo apt install ./Nexus.Office_*.deb. Other Linux distributions: run chmod +x *.AppImage && ./Nexus.Office_*.AppImage.' > "$RUNNER_TEMP/README.txt"
-          zip -j "$RUNNER_TEMP/${{ matrix.archive }}" "$RUNNER_TEMP/README.txt" apps/desktop/src-tauri/target/release/bundle/appimage/*.AppImage apps/desktop/src-tauri/target/release/bundle/deb/*.deb
+          echo 'Ubuntu/Debian: open the .deb package with your software installer, or run sudo apt install ./Nexus.Office_*.deb.' > "$RUNNER_TEMP/README.txt"
+          zip -j "$RUNNER_TEMP/${{ matrix.archive }}" "$RUNNER_TEMP/README.txt" apps/desktop/src-tauri/target/release/bundle/deb/*.deb
       - name: Package macOS installer into a ZIP
         if: runner.os == 'macOS'
         run: |
