@@ -46,12 +46,37 @@ export async function PATCH(
   }
   patch.updated_at = new Date().toISOString();
 
-  const { data: memory, error } = await supabase
+  // A Design Studio brief can be the first memory saved for a new project,
+  // before the first pipeline run has lazily created its memory row.
+  const { data: existing, error: lookupError } = await supabase
     .from("project_memory")
-    .update(patch)
+    .select("project_id")
     .eq("project_id", id)
-    .select()
-    .single();
+    .maybeSingle();
+
+  if (lookupError) return NextResponse.json({ error: lookupError.message }, { status: 500 });
+
+  const result = existing
+    ? await supabase
+        .from("project_memory")
+        .update(patch)
+        .eq("project_id", id)
+        .select()
+        .single()
+    : await supabase
+        .from("project_memory")
+        .insert({
+          project_id: id,
+          tech_stack: [],
+          decisions: [],
+          open_issues: [],
+          summary: "",
+          ...patch,
+        })
+        .select()
+        .single();
+
+  const { data: memory, error } = result;
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 

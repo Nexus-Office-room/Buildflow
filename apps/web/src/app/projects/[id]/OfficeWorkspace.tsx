@@ -18,11 +18,12 @@ import MemoryBoard from "@/components/memory/MemoryBoard";
 import CostMeter from "@/components/cost/CostMeter";
 import AuditLog from "@/components/governance/AuditLog";
 import PermissionsPanel from "@/components/governance/PermissionsPanel";
+import DesignStudio from "@/components/design/DesignStudio";
 import OnboardingTour from "@/components/onboarding/OnboardingTour";
 import type { Deploy, Integration, Project, ProjectFile, ProjectMemory, Role } from "@/types/db";
 import type { ProviderName } from "@/lib/providers";
 
-type Tab = "chat" | "canvas" | "memory" | "settings" | "deploy" | "cost" | "audit" | "permissions";
+type Tab = "chat" | "canvas" | "design" | "memory" | "settings" | "deploy" | "cost" | "audit" | "permissions";
 type ConnectionProvider = "github" | "vercel";
 
 export default function OfficeWorkspace({
@@ -88,12 +89,15 @@ export default function OfficeWorkspace({
             {projectState.name}
           </h1>
         </div>
-        <nav className="flex gap-0.5 rounded-md bg-white/5 p-1" aria-label="Workspace sections">
+        <nav className="flex max-w-[50vw] gap-0.5 overflow-x-auto rounded-md bg-white/5 p-1 sm:max-w-[60vw]" aria-label="Workspace sections">
           <TabButton active={tab === "chat"} onClick={() => setTab("chat")}>
             Chat
           </TabButton>
           <TabButton active={tab === "canvas"} onClick={() => setTab("canvas")}>
             Canvas
+          </TabButton>
+          <TabButton active={tab === "design"} onClick={() => setTab("design")}>
+            Design Studio
           </TabButton>
           <TabButton active={tab === "memory"} onClick={() => setTab("memory")}>
             Memory
@@ -171,6 +175,14 @@ export default function OfficeWorkspace({
             />
           </div>
         )}
+        {tab === "design" && (
+          <DesignStudio
+            projectId={project.id}
+            projectName={projectState.name}
+            initialSummary={initialMemory?.summary ?? ""}
+            onSendToAI={() => setTab("chat")}
+          />
+        )}
         {tab === "deploy" && (
           <div data-tour="deploy-desk">
             <DeployDesk
@@ -229,7 +241,7 @@ function TabButton({
   return (
     <button
       onClick={onClick}
-      className={`rounded px-3 py-1 text-xs font-medium transition-colors ${
+      className={`shrink-0 whitespace-nowrap rounded px-3 py-1 text-xs font-medium transition-colors ${
         active ? "bg-[var(--role-strategist)] text-white" : "text-neutral-400 hover:text-neutral-200"
       }`}
     >
