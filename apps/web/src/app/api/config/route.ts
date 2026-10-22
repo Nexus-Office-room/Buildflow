@@ -9,7 +9,7 @@ export async function GET() {
 
   if (!url || !anonKey) {
     return NextResponse.json(
-      { error: "Nexus Office is not configured yet. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in Settings → Environment." },
+      { error: "Buildflow is not configured yet. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in Settings → Environment." },
       { status: 503 }
     );
   }

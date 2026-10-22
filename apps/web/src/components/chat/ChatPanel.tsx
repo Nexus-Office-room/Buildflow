@@ -219,7 +219,7 @@ export default function ChatPanel({
         {runs.length === 0 && (
           <div className="glass-panel rounded-lg p-6 text-center" data-tour="office-chat">
             <p className="data-mono text-sm text-[var(--term-accent)] phosphor">
-              nexus@office:~$ awaiting first directive
+              buildflow@studio:~$ awaiting first directive
               <span className="cursor-block" />
             </p>
             <p className="mt-3 text-sm text-neutral-400">
@@ -232,7 +232,7 @@ export default function ChatPanel({
         {runs.map((run) => (
           <div key={run.id} className="space-y-3">
             <div className="flex justify-end">
-              <div className="max-w-[80%] rounded-lg rounded-tr-none bg-violet-600 px-3 py-2 text-sm text-white">
+              <div className="max-w-[80%] rounded-lg rounded-tr-none bg-red-600 px-3 py-2 text-sm text-white">
                 {run.user_message}
               </div>
             </div>
@@ -295,7 +295,7 @@ export default function ChatPanel({
             </Link>
             <Link
               href="/pricing"
-              className="rounded bg-violet-600 px-2.5 py-1.5 font-medium text-white hover:bg-violet-500"
+              className="rounded bg-red-600 px-2.5 py-1.5 font-medium text-white hover:bg-red-500"
             >
               Upgrade to Pro for unlimited managed AI
             </Link>
@@ -390,7 +390,7 @@ export default function ChatPanel({
         <button
           type="submit"
           disabled={pending || !input.trim()}
-          className="btn-terminal data-mono rounded-md bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-500 disabled:opacity-50"
+          className="btn-terminal data-mono rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-500 disabled:opacity-50"
         >
           {pending ? "RUNNING" : "EXEC"}
         </button>

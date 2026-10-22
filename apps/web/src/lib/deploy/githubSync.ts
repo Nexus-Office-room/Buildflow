@@ -260,5 +260,5 @@ export async function buildCommitMessage(supabase: SupabaseClient, projectId: st
   const decisions = (memory?.decisions ?? []) as { text: string; created_at: string }[];
   const latest = decisions[decisions.length - 1];
 
-  return latest ? `Nexus Office: ${latest.text}` : "Save from Nexus Office";
+  return latest ? `Buildflow: ${latest.text}` : "Save from Buildflow";
 }

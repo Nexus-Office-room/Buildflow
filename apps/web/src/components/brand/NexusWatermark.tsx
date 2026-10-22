@@ -79,13 +79,13 @@ export default function NexusWatermark() {
           <NexusLogo surface="watermark" className="h-full w-full" />
         </span>
         <span className="whitespace-nowrap text-[11.5px] font-semibold tracking-[0.01em] text-neutral-100">
-          Built with Nexus Office
+          Built with Buildflow
         </span>
       </a>
       <button
         type="button"
         onClick={dismiss}
-        aria-label="Dismiss Nexus Office watermark"
+        aria-label="Dismiss Buildflow watermark"
         className="cursor-pointer border-0 bg-transparent px-[3px] py-1 text-sm leading-none text-white/50 hover:text-white"
       >
         &times;

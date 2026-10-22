@@ -4,7 +4,7 @@ export default function SetupRequired() {
       <div className="glass-panel w-full max-w-xl rounded-xl p-8">
         <div className="mb-1 flex items-center gap-2">
           <span className="inline-block h-2.5 w-2.5 animate-pulse rounded-full bg-[var(--role-strategist)]" />
-          <h1 className="text-xl font-semibold text-neutral-100">Nexus Office — setup required</h1>
+          <h1 className="text-xl font-semibold text-neutral-100">Buildflow — setup required</h1>
         </div>
         <p className="mb-6 text-sm text-neutral-400">
           Supabase may already be set up. This deployment still needs its own connection settings.

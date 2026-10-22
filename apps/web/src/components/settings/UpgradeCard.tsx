@@ -11,7 +11,7 @@ export default function UpgradeCard({ isPro }: { isPro: boolean }) {
           <span className="rounded-full bg-emerald-600/30 px-2 py-0.5 text-[11px] font-medium text-emerald-300">
             Pro
           </span>
-          <span className="rounded-full bg-violet-600/30 px-2 py-0.5 text-[11px] font-medium text-violet-300">
+          <span className="rounded-full bg-red-600/30 px-2 py-0.5 text-[11px] font-medium text-red-300">
             Priority support
           </span>
           <span className="text-xs text-neutral-500">
@@ -36,7 +36,7 @@ export default function UpgradeCard({ isPro }: { isPro: boolean }) {
         </div>
         <Link
           href="/pricing"
-          className="shrink-0 rounded bg-violet-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-violet-500"
+          className="shrink-0 rounded bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-500"
         >
           Upgrade to Pro
         </Link>

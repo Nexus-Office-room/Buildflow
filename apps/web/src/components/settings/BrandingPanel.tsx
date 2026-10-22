@@ -65,13 +65,13 @@ export default function BrandingPanel({
     <section>
       <h2 className="mb-1 text-lg font-semibold">Branding</h2>
       <p className="mb-4 text-sm text-neutral-500">
-        Nexus Office watermark — injected at preview/deploy time only. Your source files are
+        Buildflow watermark — injected at preview/deploy time only. Your source files are
         never modified.
       </p>
 
       <div className="space-y-2">
         <ToggleRow
-          label="Show Nexus Office watermark in preview"
+          label="Show Buildflow watermark in preview"
           hint="Appears in the Code Canvas live preview."
           checked={previewWatermark}
           disabled={saving}
@@ -138,7 +138,7 @@ function ToggleRow({
         disabled={disabled}
         onClick={onToggle}
         className={`relative h-5 w-9 flex-none rounded-full transition-colors ${
-          checked ? "bg-violet-600" : "bg-neutral-700"
+          checked ? "bg-red-600" : "bg-neutral-700"
         } ${disabled ? "cursor-not-allowed opacity-40" : "cursor-pointer"}`}
       >
         <span

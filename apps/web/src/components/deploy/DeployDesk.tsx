@@ -181,7 +181,7 @@ export default function DeployDesk({
         <button
           onClick={handleDeploy}
           disabled={deploying || !githubRepo.trim()}
-          className="mt-4 w-full rounded-md bg-violet-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-violet-500 disabled:opacity-50"
+          className="mt-4 w-full rounded-md bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-500 disabled:opacity-50"
         >
           {deploying ? "Deploying…" : "Deploy Now"}
         </button>
@@ -225,7 +225,7 @@ export default function DeployDesk({
                     href={d.deployment_url}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-xs text-violet-400 hover:text-violet-300"
+                    className="text-xs text-red-400 hover:text-red-300"
                   >
                     View
                   </a>

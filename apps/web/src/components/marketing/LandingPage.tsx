@@ -16,7 +16,7 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen text-neutral-100">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
-        <span className="text-sm font-semibold tracking-wide">Nexus Office</span>
+        <span className="text-sm font-semibold tracking-wide">Buildflow</span>
         <nav className="flex items-center gap-4">
           <Link href="/login" className="text-sm text-neutral-400 hover:text-neutral-200">
             Log in
@@ -38,7 +38,7 @@ export default function LandingPage() {
           Persistent. In one app.
         </h1>
         <p className="mt-5 max-w-xl text-balance text-neutral-400">
-          Nexus Office gives every project a 5-role AI team — Strategist, Builder, Analyst,
+          Buildflow gives every project a 5-role AI team — Strategist, Builder, Analyst,
           QA, Ops — that remembers your decisions, writes code into a live editor, and ships
           it. No more juggling six tabs and losing context every new chat.
         </p>
@@ -89,7 +89,7 @@ export default function LandingPage() {
         <div className="grid gap-6 sm:grid-cols-2">
           <div className="glass-panel rounded-xl p-6">
             <h3 className="mb-3 text-sm font-semibold text-neutral-400">
-              Without Nexus Office
+              Without Buildflow
             </h3>
             <ul className="space-y-2 text-sm text-neutral-500">
               <li>— A chat tab that forgets everything tomorrow</li>
@@ -101,7 +101,7 @@ export default function LandingPage() {
           </div>
           <div className="glass-panel rounded-xl p-6" style={{ borderColor: "var(--role-analyst)" }}>
             <h3 className="mb-3 text-sm font-semibold" style={{ color: "var(--role-analyst)" }}>
-              With Nexus Office
+              With Buildflow
             </h3>
             <ul className="space-y-2 text-sm text-neutral-300">
               <li>— One workspace per project, memory included</li>
@@ -115,7 +115,7 @@ export default function LandingPage() {
       </section>
 
       <footer className="mx-auto max-w-6xl px-6 pb-12 text-center text-xs text-neutral-600">
-        Nexus Office
+        Buildflow
       </footer>
     </div>
   );

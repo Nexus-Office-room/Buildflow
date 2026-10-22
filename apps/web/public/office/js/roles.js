@@ -1,4 +1,4 @@
-// Nexus Office — role registry. One source of truth for role names,
+// Buildflow — role registry. One source of truth for role names,
 // accent colors, and inline SVG glyphs (no icon library dependency).
 
 export const ROLES = ["strategist", "builder", "analyst", "qa", "ops"];
@@ -12,9 +12,9 @@ export const ROLE_LABELS = {
 };
 
 export const ROLE_COLORS = {
-  strategist: "#3ee0e8",
+  strategist: "#ef4444",
   builder: "#f5a623",
-  analyst: "#a78bfa",
+  analyst: "#3b82f6",
   qa: "#4ade80",
   ops: "#fb7185",
 };

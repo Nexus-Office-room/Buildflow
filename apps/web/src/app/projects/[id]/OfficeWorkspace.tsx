@@ -82,7 +82,7 @@ export default function OfficeWorkspace({
             href="/projects"
             className="shrink-0 font-mono text-xs text-neutral-500 hover:text-[var(--term-accent)]"
           >
-            ~/nexus
+            ~/buildflow
           </Link>
           <span className="shrink-0 font-mono text-xs text-neutral-700">/</span>
           <h1 className="truncate font-mono text-sm font-semibold text-neutral-100">

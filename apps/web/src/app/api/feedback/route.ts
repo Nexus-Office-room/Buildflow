@@ -67,7 +67,7 @@ export async function POST(req: Request) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          from: "Nexus Office <feedback@resend.dev>",
+          from: "Buildflow <feedback@resend.dev>",
           to: [feedbackEmail],
           subject: `[${type}] New feedback from ${user.email ?? user.id}`,
           text: message,

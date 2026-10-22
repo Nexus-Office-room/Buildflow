@@ -28,7 +28,7 @@ export default function PatchCompanion() {
   return (
     <aside
       className={`patch-companion${open ? " patch-companion--open" : ""}`}
-      aria-label={`${pet.name}, your Nexus companion`}
+      aria-label={`${pet.name}, your Buildflow companion`}
     >
       {open && (
         <div className="patch-companion__bubble" id="patch-companion-message">
@@ -40,7 +40,7 @@ export default function PatchCompanion() {
           >
             ×
           </button>
-          <span className="patch-companion__eyebrow">YOUR NEXUS SIDEKICK</span>
+          <span className="patch-companion__eyebrow">YOUR BUILDFLOW SIDEKICK</span>
           <p>{pet.greeting}</p>
           <Link className="patch-companion__choose" href="/companions" onClick={() => setOpen(false)}>
             Meet the other companions →
@@ -51,7 +51,7 @@ export default function PatchCompanion() {
         className="patch-companion__button"
         type="button"
         onClick={() => setOpen((value) => !value)}
-        aria-label={open ? `Close ${pet.name} message` : `Meet ${pet.name}, your Nexus sidekick`}
+        aria-label={open ? `Close ${pet.name} message` : `Meet ${pet.name}, your Buildflow sidekick`}
         aria-expanded={open}
       >
         {pet.id === "patch" ? (

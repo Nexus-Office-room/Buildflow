@@ -106,7 +106,7 @@ export default function ConnectionsPanel({
                     <button
                       onClick={() => save(provider)}
                       disabled={saving === provider || !drafts[provider].trim()}
-                      className="rounded bg-violet-600 px-2 py-1 text-xs font-medium text-white hover:bg-violet-500 disabled:opacity-50"
+                      className="rounded bg-red-600 px-2 py-1 text-xs font-medium text-white hover:bg-red-500 disabled:opacity-50"
                     >
                       Save
                     </button>

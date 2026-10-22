@@ -22,9 +22,9 @@
   --text-faint: #5d6470;
 
   /* Role accents — single source of truth, reused everywhere */
-  --role-strategist: #3ee0e8; /* cyan    */
+  --role-strategist: #ef4444; /* red     */
   --role-builder: #f5a623;    /* amber   */
-  --role-analyst: #a78bfa;    /* violet  */
+  --role-analyst: #3b82f6;    /* blue    */
   --role-qa: #4ade80;         /* green   */
   --role-ops: #fb7185;        /* pink-red */
 

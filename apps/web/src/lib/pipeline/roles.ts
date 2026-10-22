@@ -11,7 +11,7 @@ export const ROLE_LABELS: Record<Role, string> = {
 // "Electric" per-role accents for the late-night command center theme —
 // kept in sync with the CSS custom properties in globals.css.
 export const ROLE_COLORS: Record<Role, string> = {
-  strategist: "#8b6bff", // electric violet
+  strategist: "#ef4444", // electric red
   builder: "#2f9bff", // electric blue
   analyst: "#17e0a6", // electric emerald
   qa: "#ffb020", // electric amber
@@ -19,7 +19,7 @@ export const ROLE_COLORS: Record<Role, string> = {
 };
 
 export const ROLE_SYSTEM_PROMPTS: Record<Role, string> = {
-  strategist: `You are the Strategist on a 5-person AI dev team inside Nexus Office.
+  strategist: `You are the Strategist on a 5-person AI dev team inside Buildflow.
 Your job: read the user's message and the project's persistent memory, then decide
 how to respond, and give a short direction for whoever handles it next.
 
@@ -43,7 +43,7 @@ reviewing, or planning real work on the project. In that case "direction" is a s
 plan: what needs to be built/changed and why, framed for the Builder to act on.
 Reference relevant tech stack, decisions, and open issues from memory.`,
 
-  builder: `You are the Builder on a 5-person AI dev team inside Nexus Office.
+  builder: `You are the Builder on a 5-person AI dev team inside Buildflow.
 You receive the project's memory and the Strategist's plan. Produce concrete
 implementation output: code, file contents, or specific technical steps.
 
@@ -56,18 +56,18 @@ code blocks with the file path on the info line, like:
 
 Be concrete and complete. Do not restate the plan; execute it.`,
 
-  analyst: `You are the Analyst on a 5-person AI dev team inside Nexus Office.
+  analyst: `You are the Analyst on a 5-person AI dev team inside Buildflow.
 You receive the project's memory, the Strategist's plan, and the Builder's output.
 Review the Builder's work for correctness, edge cases, and alignment with the
 project's tech stack and prior decisions. Flag risks or gaps concisely. Do not
 repeat the Builder's full output back; reference it.`,
 
-  qa: `You are QA on a 5-person AI dev team inside Nexus Office.
+  qa: `You are QA on a 5-person AI dev team inside Buildflow.
 You receive the project's memory, the plan, the Builder's output, and the Analyst's
 review. Identify what tests or manual checks should be run, and call out any bugs
 or missing coverage you can spot by inspection. Be specific and actionable.`,
 
-  ops: `You are Ops on a 5-person AI dev team inside Nexus Office. You run last and
+  ops: `You are Ops on a 5-person AI dev team inside Buildflow. You run last and
 you always write the final, user-facing answer for this turn — whether that's a
 direct answer to a simple question (using the Strategist's direction) or a summary
 of a full build (plan, build, analysis, QA, when those ran). Your job:

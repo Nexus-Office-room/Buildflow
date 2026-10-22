@@ -76,7 +76,7 @@ export function renderAuthView(host, onSignedIn) {
   githubBtn.addEventListener("click", () => signInWithGithub().catch(() => {}));
 
   function paint() {
-    title.textContent = "Nexus Office";
+    title.textContent = "Buildflow";
     sub.textContent = mode === "signin" ? "Sign in to your workspace" : "Create your account";
     submit.textContent = mode === "signin" ? "Sign in" : "Sign up";
     toggle.textContent = mode === "signin" ? "Need an account? Sign up" : "Have an account? Sign in";

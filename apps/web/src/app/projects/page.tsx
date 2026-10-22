@@ -34,7 +34,7 @@ export default async function ProjectsPage() {
       <div className="mx-auto max-w-2xl">
         {/* Addendum 14: boot line — console session header. */}
         <div className="data-mono mb-6 flex items-center gap-2 text-xs text-neutral-600">
-          <span className="text-[var(--term-accent)] phosphor">nexus@office</span>
+          <span className="text-[var(--term-accent)] phosphor">buildflow@studio</span>
           <span>:~/projects</span>
           <span className="text-neutral-700">$</span>
           <span>ls -la</span>
@@ -48,7 +48,7 @@ export default async function ProjectsPage() {
           <div className="flex items-center gap-4">
             <Link
               href="/pricing"
-              className="data-mono text-xs text-violet-400 hover:text-violet-300"
+              className="data-mono text-xs text-red-400 hover:text-red-300"
             >
               upgrade→pro
             </Link>

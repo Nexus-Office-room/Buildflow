@@ -19,8 +19,8 @@ const geistMono = Geist_Mono({
 // `npm run assets` (scripts/generate-brand-assets.mjs).
 export const metadata: Metadata = {
   title: {
-    default: "Nexus Office",
-    template: "%s · Nexus Office",
+    default: "Buildflow",
+    template: "%s · Buildflow",
   },
   description: "A five-role AI dev team in one office — plan, build, review, ship.",
   manifest: "/manifest.json",
@@ -39,12 +39,12 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Nexus Office",
+    title: "Buildflow",
   },
   openGraph: {
-    title: "Nexus Office",
+    title: "Buildflow",
     description: "A five-role AI dev team in one office — plan, build, review, ship.",
-    images: [{ url: "/brand/icon-512.png", width: 512, height: 512, alt: "Nexus Office" }],
+    images: [{ url: "/brand/buildflow-mark.svg", width: 128, height: 128, alt: "Buildflow" }],
   },
 };
 

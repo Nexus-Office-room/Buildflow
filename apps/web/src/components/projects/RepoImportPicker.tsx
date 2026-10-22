@@ -2,7 +2,7 @@
 
 // Addendum 13 Phase 2: primary project entry point. In-app repo creation is
 // gone (per spec) — this picker lists the user's personal GitHub account and
-// every org they belong to, and importing a repo creates the Nexus Office
+// every org they belong to, and importing a repo creates the Buildflow
 // project linked to it. The "create it on GitHub first" hint links out to
 // github.com/new with a refresh button.
 
@@ -112,7 +112,7 @@ export default function RepoImportPicker() {
     void Promise.resolve().then(() => loadAll());
   }, [loadAll]);
 
-  // Importing = create the Nexus Office project linked to the picked repo.
+  // Importing = create the Buildflow project linked to the picked repo.
   async function importRepo(fullName: string) {
     if (importing) return;
     setImporting(fullName);

@@ -74,7 +74,7 @@ export async function startDeploy({
     githubToken,
     project.github_repo,
     withDeployWatermark(files ?? [], project),
-    "Deploy from Nexus Office"
+    "Deploy from Buildflow"
   );
 
   const { data: deploy, error } = await supabase

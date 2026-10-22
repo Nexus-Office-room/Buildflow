@@ -16,7 +16,7 @@ export async function GET(_request: Request, context: { params: Promise<{ target
     return NextResponse.json({ error: "Unknown download." }, { status: 404 });
   }
 
-  // Proxy the public installer asset so download clicks remain on the Nexus Office domain.
+  // Proxy the public installer asset so download clicks remain on the Buildflow domain.
   const url = `${RELEASE_BASE}/${encodeURIComponent(archive)}`;
   const upstream = await fetch(url, { cache: "no-store", redirect: "follow" });
   if (!upstream.ok || !upstream.body) {

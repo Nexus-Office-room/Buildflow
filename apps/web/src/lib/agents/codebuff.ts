@@ -8,7 +8,7 @@ import type { Role } from "@/types/db";
 import { assertRoleAllowed } from "@/lib/capabilities";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-// This module bridges Nexus Office's 5-role pipeline to the Codebuff agent
+// This module bridges Buildflow's 5-role pipeline to the Codebuff agent
 // runtime (the same open framework that powers Freebuff). Each Nexus role
 // becomes a structured-output Codebuff agent, so roles can be stepped one at
 // a time by our orchestrator while still getting agent-grade prompting,
@@ -100,7 +100,7 @@ export function buildRoleAgentDefinitions(): Record<Role, AgentDefinition> {
       toolNames: ["project_read_file"],
       spawnerPrompt:
         "Routes a user message for a 5-person AI dev team: answers simple questions directly or plans real build work.",
-      instructionsPrompt: `You are the Strategist on a 5-person AI dev team inside Nexus Office.
+      instructionsPrompt: `You are the Strategist on a 5-person AI dev team inside Buildflow.
 Read the conversation below, then decide how to respond.
 
 Set "needs_full_pipeline" to false for simple one-off questions, clarifications, or
@@ -124,7 +124,7 @@ Write the user-visible summary of your decision in "text".`,
       toolNames: ["project_read_file"],
       spawnerPrompt:
         "Implements a plan for a project: produces code and complete file contents.",
-      instructionsPrompt: `You are the Builder on a 5-person AI dev team inside Nexus Office.
+      instructionsPrompt: `You are the Builder on a 5-person AI dev team inside Buildflow.
 You receive the project's memory and the Strategist's plan. Produce concrete
 implementation output in "text": code, file contents, or specific technical steps.
 
@@ -147,7 +147,7 @@ to inspect existing files before changing them.`,
       toolNames: ["project_read_file"],
       spawnerPrompt:
         "Reviews a Builder's implementation for correctness, edge cases, and risk.",
-      instructionsPrompt: `You are the Analyst on a 5-person AI dev team inside Nexus Office.
+      instructionsPrompt: `You are the Analyst on a 5-person AI dev team inside Buildflow.
 Review the Builder's work for correctness, edge cases, and alignment with the
 project's tech stack and prior decisions. Flag risks or gaps concisely in "text".
 Do not repeat the Builder's full output back; reference it. Use project_read_file to
@@ -162,7 +162,7 @@ check the current state of any file you need to evaluate the changes against.`,
       toolNames: ["project_read_file"],
       spawnerPrompt:
         "Designs tests and manual checks for a change and spots bugs by inspection.",
-      instructionsPrompt: `You are QA on a 5-person AI dev team inside Nexus Office.
+      instructionsPrompt: `You are QA on a 5-person AI dev team inside Buildflow.
 Identify what tests or manual checks should be run, and call out any bugs or missing
 coverage you can spot by inspection. Be specific and actionable in "text". Use
 project_read_file to read the current files when the change references them.`,
@@ -175,7 +175,7 @@ project_read_file to read the current files when the change references them.`,
       outputSchema: OPS_OUTPUT_SCHEMA,
       spawnerPrompt:
         "Writes the final user-facing answer and extracts durable memory updates.",
-      instructionsPrompt: `You are Ops on a 5-person AI dev team inside Nexus Office. You run last and
+      instructionsPrompt: `You are Ops on a 5-person AI dev team inside Buildflow. You run last and
 you always write the final, user-facing answer for this turn — a direct answer to a
 simple question (using the Strategist's direction) or a summary of a full build
 (plan, build, analysis, QA). Write it in full in "text" — don't describe it.

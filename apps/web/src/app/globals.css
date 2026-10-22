@@ -6,14 +6,14 @@
   --panel-bg: rgba(255, 255, 255, 0.04);
   --panel-border: rgba(255, 255, 255, 0.09);
 
-  --role-strategist: #8b6bff;
-  --role-builder: #2f9bff;
+  --role-strategist: #ef4444;
+  --role-builder: #3b82f6;
   --role-analyst: #17e0a6;
   --role-qa: #ffb020;
   --role-ops: #ff4d6a;
 
   /* Addendum 14: terminal chrome — phosphor accent + hairline scale */
-  --term-accent: #17e0a6;
+  --term-accent: #3b82f6;
   --term-accent-dim: color-mix(in srgb, var(--term-accent) 55%, transparent);
   --term-line: rgba(255, 255, 255, 0.07);
 }
@@ -221,7 +221,7 @@ body {
 .relay-line-active {
   background: linear-gradient(
     90deg,
-    var(--line-color, #8b6bff) 50%,
+    var(--line-color, #ef4444) 50%,
     rgba(255, 255, 255, 0.12) 50%
   );
   background-size: 200% 100%;
@@ -235,7 +235,14 @@ body {
   background: transparent;
 }
 
-/* Patch, the small interactive Nexus companion. The 8×11 atlas is shown at
+/* Keep authentication focused: replace the global code-rain/photo layers with
+   the controlled dark red/blue lighting rendered by the auth shell itself. */
+body:has(.auth-shell) .nx-backdrop,
+body:has(.auth-shell) .nx-rain {
+  display: none;
+}
+
+/* Patch, the small interactive Buildflow companion. The 8×11 atlas is shown at
    half scale; row zero contains the six-frame idle animation. */
 .patch-companion {
   position: fixed;

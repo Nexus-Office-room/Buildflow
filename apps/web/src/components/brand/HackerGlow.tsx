@@ -13,7 +13,7 @@
 // glyphs inside the logo's bounding box.
 export default function HackerGlow({
   className = "",
-  color = "#39ff88",
+  color = "#3b82f6",
 }: {
   className?: string;
   color?: string;

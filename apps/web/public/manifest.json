@@ -1,6 +1,6 @@
 {
-  "name": "Nexus Office",
-  "short_name": "Nexus",
+  "name": "Buildflow",
+  "short_name": "Buildflow",
   "description": "A five-role AI dev team in one office — plan, build, review, ship.",
   "id": "/",
   "start_url": "/projects",

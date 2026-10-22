@@ -196,7 +196,7 @@ export default function ProfilePage() {
           <div>
             <h2 className="text-sm font-semibold text-neutral-300">Display name</h2>
             <p className="mb-2 text-xs text-neutral-500">
-              How Nexus Office addresses you — in the nav, Memory Board, Audit Log,
+              How Buildflow addresses you — in the nav, Memory Board, Audit Log,
               and as the author on your GitHub commits.
             </p>
             {loading ? (
@@ -304,7 +304,7 @@ export default function ProfilePage() {
                       href={`https://github.com/${info.githubLogin}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-violet-400 hover:text-violet-300"
+                      className="text-red-400 hover:text-red-300"
                     >
                       @{info.githubLogin}
                     </a>

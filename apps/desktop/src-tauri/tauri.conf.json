@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Nexus Office",
+  "productName": "Buildflow",
   "version": "0.1.1",
   "identifier": "com.nexusoffice.desktop",
   "build": {
@@ -9,7 +9,7 @@
   "app": {
     "windows": [
       {
-        "title": "Nexus Office",
+        "title": "Buildflow",
         "width": 1440,
         "height": 920,
         "minWidth": 980,

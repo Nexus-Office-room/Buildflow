@@ -1,8 +1,8 @@
 [package]
 name = "nexus-office-desktop"
 version = "0.1.1"
-description = "Nexus Office desktop application"
-authors = ["Nexus Office"]
+description = "Buildflow desktop application"
+authors = ["Buildflow"]
 edition = "2021"
 rust-version = "1.77.2"
 build = "build.rs"

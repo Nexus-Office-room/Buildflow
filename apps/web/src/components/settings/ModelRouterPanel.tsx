@@ -228,9 +228,9 @@ export default function ModelRouterPanel({
           <h2 className="text-lg font-semibold">Model Router</h2>
           <span
             className="rounded-full bg-neutral-800 px-2 py-0.5 text-[10px] font-medium text-neutral-400"
-            title="Roles without an explicit assignment run on Nexus Office's shared AI key, capped at the Free-tier monthly allowance. Add your own key to remove the cap."
+            title="Roles without an explicit assignment run on Buildflow's shared AI key, capped at the Free-tier monthly allowance. Add your own key to remove the cap."
           >
-            Using Nexus Office&apos;s shared AI (Free tier)
+            Using Buildflow&apos;s shared AI (Free tier)
           </span>
         </div>
         <p className="mb-4 text-sm text-neutral-500">
@@ -440,13 +440,13 @@ export default function ModelRouterPanel({
               onChange={(event) => setKeyDraft(event.target.value)}
               required
               placeholder="Paste the token for the selected provider"
-              className="w-full rounded border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm text-neutral-100 outline-none focus:border-violet-500"
+              className="w-full rounded border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm text-neutral-100 outline-none focus:border-red-500"
             />
           </label>
           {selectedProvider !== "__custom" && (
             <p className="text-xs text-neutral-500">{AI_PROVIDER_CHOICES.find((choice) => choice.value === selectedProvider)?.note}</p>
           )}
-          <button type="submit" disabled={savingKey || !keyDraft.trim()} className="w-full rounded bg-violet-600 px-3 py-2 text-sm font-medium text-white hover:bg-violet-500 disabled:opacity-50">
+          <button type="submit" disabled={savingKey || !keyDraft.trim()} className="w-full rounded bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-500 disabled:opacity-50">
             {savingKey ? "Saving…" : selectedProvider === "__custom" || !DIRECT_AI_PROVIDER_VALUES.has(selectedProvider) ? "Verify & save token" : "Save token"}
           </button>
           {keyStatus && <p role="status" className="text-xs text-emerald-400">{keyStatus}</p>}

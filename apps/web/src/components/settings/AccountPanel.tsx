@@ -43,7 +43,7 @@ export default function AccountPanel() {
     <section className="glass-panel rounded-lg p-4">
       <h3 className="mb-1 text-sm font-semibold text-neutral-200">Account</h3>
       <p className="mb-3 text-xs text-neutral-500">
-        How Nexus Office addresses you — in the workspace UI and as the author
+        How Buildflow addresses you — in the workspace UI and as the author
         name on commits pushed to GitHub.
       </p>
       {loading ? (

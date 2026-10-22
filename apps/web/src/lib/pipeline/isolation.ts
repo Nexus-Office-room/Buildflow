@@ -109,7 +109,7 @@ export async function declareScope(args: {
   }
 }
 
-const SCOPE_SYSTEM_PROMPT = `You are the File Scoper for a 5-person AI dev team inside Nexus Office.
+const SCOPE_SYSTEM_PROMPT = `You are the File Scoper for a 5-person AI dev team inside Buildflow.
 Given the user's request and the plan, list the exact file paths the Builder may
 create or modify to fulfill it. Be precise and minimal: include every file the
 plan genuinely requires (and direct imports that must change with it), but

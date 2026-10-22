@@ -47,10 +47,10 @@ export default function CompanionsPage() {
         </header>
 
         <div className="mb-8 max-w-2xl">
-          <p className="font-mono text-[11px] uppercase tracking-[.2em] text-emerald-300">Nexus companions</p>
+          <p className="font-mono text-[11px] uppercase tracking-[.2em] text-emerald-300">Buildflow companions</p>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">Pick your office sidekick</h1>
           <p className="mt-3 text-sm leading-6 text-neutral-400">
-            Choose who keeps you company. Your companion follows you across Nexus Office on this browser.
+            Choose who keeps you company. Your companion follows you across Buildflow on this browser.
           </p>
         </div>
 

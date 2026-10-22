@@ -197,7 +197,7 @@ export default function OfficeChatPage() {
         </header>
 
         <div className="mb-5">
-          <p className="font-mono text-[11px] uppercase tracking-[.2em] text-cyan-300">Office Group Chat</p>
+          <p className="font-mono text-[11px] uppercase tracking-[.2em] text-blue-300">Office Group Chat</p>
           <h1 className="mt-1 text-3xl font-semibold">Work together in a room</h1>
           <p className="mt-2 max-w-2xl text-sm text-neutral-400">Create a room, share its invite link, and keep the team conversation in one place.</p>
         </div>
@@ -208,22 +208,22 @@ export default function OfficeChatPage() {
         <div className="grid min-h-[62vh] overflow-hidden rounded-2xl border border-white/10 bg-neutral-950/80 md:grid-cols-[280px_1fr]">
           <aside className="border-b border-white/10 p-4 md:border-b-0 md:border-r">
             <form onSubmit={createRoom} className="space-y-2">
-              <input value={roomName} onChange={(e) => setRoomName(e.target.value)} maxLength={80} placeholder="New room name" aria-label="New room name" className="w-full rounded-md border border-white/10 bg-black/30 px-2 py-2 text-xs outline-none focus:border-cyan-300/50" />
+              <input value={roomName} onChange={(e) => setRoomName(e.target.value)} maxLength={80} placeholder="New room name" aria-label="New room name" className="w-full rounded-md border border-white/10 bg-black/30 px-2 py-2 text-xs outline-none focus:border-blue-300/50" />
               <label className="block">
                 <span className="mb-1 block font-mono text-[9px] uppercase tracking-widest text-neutral-500">Choose a 5-digit invite code</span>
-                <input value={createInviteCode} onChange={(e) => setCreateInviteCode(e.target.value.replace(/\D/g, "").slice(0, 5))} inputMode="numeric" autoComplete="off" maxLength={5} pattern="[0-9]{5}" placeholder="e.g. 04217" aria-label="Choose a 5-digit invite code" className="w-full rounded-md border border-white/10 bg-black/30 px-2 py-2 font-mono text-sm tracking-[.25em] outline-none focus:border-cyan-300/50" />
+                <input value={createInviteCode} onChange={(e) => setCreateInviteCode(e.target.value.replace(/\D/g, "").slice(0, 5))} inputMode="numeric" autoComplete="off" maxLength={5} pattern="[0-9]{5}" placeholder="e.g. 04217" aria-label="Choose a 5-digit invite code" className="w-full rounded-md border border-white/10 bg-black/30 px-2 py-2 font-mono text-sm tracking-[.25em] outline-none focus:border-blue-300/50" />
               </label>
-              <button disabled={busy || !roomName.trim() || createInviteCode.length !== 5} className="w-full rounded-md bg-cyan-300/15 px-3 py-2 text-xs text-cyan-100 disabled:opacity-40">Create room</button>
+              <button disabled={busy || !roomName.trim() || createInviteCode.length !== 5} className="w-full rounded-md bg-blue-300/15 px-3 py-2 text-xs text-blue-100 disabled:opacity-40">Create room</button>
             </form>
             <form onSubmit={submitInvite} className="mt-2 flex gap-2">
-              <input value={inviteCode} onChange={(e) => setInviteCode(e.target.value.replace(/\D/g, "").slice(0, 5))} inputMode="numeric" maxLength={5} placeholder="5-digit invite code" aria-label="Room invite code" className="min-w-0 flex-1 rounded-md border border-white/10 bg-black/30 px-2 py-2 text-xs outline-none focus:border-cyan-300/50" />
+              <input value={inviteCode} onChange={(e) => setInviteCode(e.target.value.replace(/\D/g, "").slice(0, 5))} inputMode="numeric" maxLength={5} placeholder="5-digit invite code" aria-label="Room invite code" className="min-w-0 flex-1 rounded-md border border-white/10 bg-black/30 px-2 py-2 text-xs outline-none focus:border-blue-300/50" />
               <button disabled={busy || inviteCode.length !== 5} className="rounded-md border border-white/10 px-3 text-xs text-neutral-300 disabled:opacity-40">Join</button>
             </form>
             <h2 className="mb-2 mt-6 font-mono text-[10px] uppercase tracking-widest text-neutral-600">Your rooms</h2>
             <div className="space-y-1">
               {rooms.map((room) => (
-                <button key={room.id} onClick={() => setActiveRoomId(room.id)} className={`w-full rounded-lg px-3 py-2 text-left text-sm ${activeRoomId === room.id ? "bg-cyan-300/10 text-cyan-100" : "text-neutral-400 hover:bg-white/5 hover:text-white"}`}>
-                  <span className="mr-2 text-cyan-300">#</span>{room.name}
+                <button key={room.id} onClick={() => setActiveRoomId(room.id)} className={`w-full rounded-lg px-3 py-2 text-left text-sm ${activeRoomId === room.id ? "bg-blue-300/10 text-blue-100" : "text-neutral-400 hover:bg-white/5 hover:text-white"}`}>
+                  <span className="mr-2 text-blue-300">#</span>{room.name}
                 </button>
               ))}
               {!loading && rooms.length === 0 && <p className="px-3 py-3 text-xs leading-5 text-neutral-600">No rooms yet. Create one or join with an invite link.</p>}
@@ -237,11 +237,11 @@ export default function OfficeChatPage() {
                 <header className="flex items-center gap-3 border-b border-white/10 px-4 py-3">
                   <div className="min-w-0 flex-1"><h2 className="truncate font-medium"># {activeRoom.name}</h2><p className="text-[10px] text-neutral-600">Room chat · messages refresh every 5 seconds</p></div>
                 </header>
-                <aside aria-label="Room invitation" className="grid gap-3 border-b border-cyan-300/10 bg-cyan-300/[.035] px-4 py-3 sm:grid-cols-[1fr_auto] sm:items-center">
+                <aside aria-label="Room invitation" className="grid gap-3 border-b border-blue-300/10 bg-blue-300/[.035] px-4 py-3 sm:grid-cols-[1fr_auto] sm:items-center">
                   <div className="min-w-0 space-y-2">
                     <div>
                       <p className="font-mono text-[9px] uppercase tracking-widest text-neutral-500">Invite link</p>
-                      <p className="break-all font-mono text-xs text-cyan-100">{inviteLink}</p>
+                      <p className="break-all font-mono text-xs text-blue-100">{inviteLink}</p>
                     </div>
                     <div>
                       <p className="font-mono text-[9px] uppercase tracking-widest text-neutral-500">Invite code</p>
@@ -256,15 +256,15 @@ export default function OfficeChatPage() {
                 <div className="flex-1 space-y-3 overflow-y-auto p-4">
                   {messages.map((message) => (
                     <article key={message.id} className="rounded-lg border border-white/5 bg-white/[.025] px-3 py-2">
-                      <div className="flex items-center gap-2"><span className="font-mono text-[10px] text-cyan-200">teammate · {message.sender_id.slice(0, 8)}</span><time className="text-[10px] text-neutral-600">{new Date(message.created_at).toLocaleString()}</time></div>
+                      <div className="flex items-center gap-2"><span className="font-mono text-[10px] text-blue-200">teammate · {message.sender_id.slice(0, 8)}</span><time className="text-[10px] text-neutral-600">{new Date(message.created_at).toLocaleString()}</time></div>
                       <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-6 text-neutral-200">{message.content}</p>
                     </article>
                   ))}
                   {messages.length === 0 && <p className="py-12 text-center text-sm text-neutral-600">This room is ready. Start the conversation.</p>}
                 </div>
                 <form onSubmit={sendMessage} className="flex gap-2 border-t border-white/10 p-3">
-                  <input value={draft} onChange={(e) => setDraft(e.target.value)} maxLength={8000} placeholder="Message your team…" aria-label="Message your team" className="min-w-0 flex-1 rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none focus:border-cyan-300/50" />
-                  <button disabled={busy || !draft.trim()} className="rounded-lg bg-cyan-300/15 px-4 text-sm text-cyan-100 disabled:opacity-40">Send</button>
+                  <input value={draft} onChange={(e) => setDraft(e.target.value)} maxLength={8000} placeholder="Message your team…" aria-label="Message your team" className="min-w-0 flex-1 rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none focus:border-blue-300/50" />
+                  <button disabled={busy || !draft.trim()} className="rounded-lg bg-blue-300/15 px-4 text-sm text-blue-100 disabled:opacity-40">Send</button>
                 </form>
               </>
             ) : (

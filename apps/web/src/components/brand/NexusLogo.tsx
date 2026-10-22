@@ -53,11 +53,11 @@ export default function NexusLogo({
     <span className={`relative inline-flex select-none ${cfg.className} ${className}`}>
       {glow && <HackerGlow className="-inset-3" />}
       <Image
-        src="/logo.png"
-        alt="Nexus Office logo"
+        src="/brand/buildflow-mark.svg"
+        alt="Buildflow logo"
         className="relative h-full w-full select-none object-contain"
-        width={512}
-        height={512}
+        width={128}
+        height={128}
         sizes={cfg.sizes}
         priority={cfg.priority}
         onError={() => setLoadFailed(true)}

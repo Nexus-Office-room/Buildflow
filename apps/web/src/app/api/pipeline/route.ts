@@ -86,7 +86,7 @@ export async function POST(req: Request) {
     });
   }
 
-  // Free-tier gate (Phase 3/4): if this run will draw on Nexus Office's
+  // Free-tier gate (Phase 3/4): if this run will draw on Buildflow's
   // shared AI key, consume one run from the monthly allowance first. Never a
   // silent failure — the client shows an explicit upgrade/BYO-key prompt.
   // Note: runPipeline itself decides per role whether the shared key is
@@ -107,7 +107,7 @@ export async function POST(req: Request) {
         error:
           sharedRun.reason === "user_limit"
             ? `You've used all ${monthlyLimit()} free shared-AI runs this month.`
-            : "Nexus Office's shared AI is at capacity right now. Please try again later.",
+            : "Buildflow's shared AI is at capacity right now. Please try again later.",
         code: sharedRun.reason === "user_limit" ? "free_limit_reached" : "shared_capacity",
         usage: { used: sharedRun.used, limit: sharedRun.limit, resetAt: sharedRun.resetAt },
       }),

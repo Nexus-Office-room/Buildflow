@@ -3,7 +3,7 @@ import { logAudit } from "@/lib/audit";
 
 // Shared free-tier AI key (Addendum 12 Phase 3).
 //
-// Nexus Office ships one app-owned provider key (env: NEXUS_DEFAULT_AI_KEY)
+// Buildflow ships one app-owned provider key (env: NEXUS_DEFAULT_AI_KEY)
 // so a brand-new project can run the pipeline with zero setup. It is strictly
 // server-side: the key never reaches the client, and usage is capped at the
 // Free-tier monthly limit per user (NEXUS_FREE_MONTHLY_RUNS, default 50) plus

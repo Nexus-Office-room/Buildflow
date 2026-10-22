@@ -2,7 +2,7 @@ import { createHash, randomBytes, timingSafeEqual } from "crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-// Nexus Office API tokens (`nxo_live_...` / `nxo_test_...`).
+// Buildflow API tokens (`nxo_live_...` / `nxo_test_...`).
 //
 // Security model:
 // - The raw token is generated once from crypto-strength randomness and shown

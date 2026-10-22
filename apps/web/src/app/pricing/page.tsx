@@ -16,7 +16,7 @@ const FREE_FEATURES = [
   "GitHub storage + deploy",
   "Prompt Vault, Memory Board, Audit Log",
   "Bring-your-own API keys (Integrations panel)",
-  "Nexus Office watermark on preview + deployed sites",
+  "Buildflow watermark on preview + deployed sites",
 ];
 
 const PRO_FEATURES = [
@@ -51,7 +51,7 @@ export default function PricingPage() {
         <div className="mb-10 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <NexusLogo surface="nav" />
-            <span className="text-sm font-semibold">Nexus Office</span>
+            <span className="text-sm font-semibold">Buildflow</span>
           </Link>
           <Link
             href="/login"
@@ -90,10 +90,10 @@ export default function PricingPage() {
           </div>
 
           {/* Pro */}
-          <div className="rounded-xl border border-violet-900/60 bg-neutral-900 p-6">
+          <div className="rounded-xl border border-red-900/60 bg-neutral-900 p-6">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold">Pro</h2>
-              <span className="rounded-full bg-violet-600/30 px-2 py-0.5 text-[11px] font-medium text-violet-300">
+              <span className="rounded-full bg-red-600/30 px-2 py-0.5 text-[11px] font-medium text-red-300">
                 No watermark
               </span>
             </div>
@@ -116,7 +116,7 @@ export default function PricingPage() {
               type="button"
               disabled
               title="Coming soon"
-              className="mt-6 block w-full cursor-not-allowed rounded-md bg-violet-600 px-4 py-2.5 text-center text-sm font-medium text-white opacity-60"
+              className="mt-6 block w-full cursor-not-allowed rounded-md bg-red-600 px-4 py-2.5 text-center text-sm font-medium text-white opacity-60"
             >
               Upgrade to Pro — coming soon
             </button>

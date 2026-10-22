@@ -1,4 +1,4 @@
-// Nexus Office — app shell & router (hash-based). Wires auth, the project
+// Buildflow — app shell & router (hash-based). Wires auth, the project
 // picker, and the split-pane Office workspace (Chat | Code) plus the
 // Deploy, Memory, Cost and Settings pages.
 
@@ -37,7 +37,7 @@ async function boot() {
     if (err && err.status === 503) {
       renderSetupCard();
     } else {
-      renderBootError("Could not reach the Nexus Office API. Is the app running?");
+      renderBootError("Could not reach the Buildflow API. Is the app running?");
     }
     return;
   }

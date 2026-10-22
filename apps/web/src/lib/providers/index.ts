@@ -183,7 +183,7 @@ function mockResponseFor(system: string, prompt: string): string {
   }
 
   if (system.includes("You are the Builder")) {
-    return `[mock] Implemented the plan.\n\n\`\`\`path=index.html\n<!doctype html>\n<html>\n  <head><title>Mock Page</title></head>\n  <body>\n    <h1>Hello from Nexus Office</h1>\n    <p>This page was written by the mocked Builder role.</p>\n  </body>\n</html>\n\`\`\``;
+    return `[mock] Implemented the plan.\n\n\`\`\`path=index.html\n<!doctype html>\n<html>\n  <head><title>Mock Page</title></head>\n  <body>\n    <h1>Hello from Buildflow</h1>\n    <p>This page was written by the mocked Builder role.</p>\n  </body>\n</html>\n\`\`\``;
   }
 
   if (system.includes("You are the Analyst")) {

@@ -1,4 +1,4 @@
-// Shared "Matrix code rain" engine for the Nexus Office brand background.
+// Shared "Matrix code rain" engine for the Buildflow brand background.
 // One <canvas>, requestAnimationFrame, no external library. Used by:
 // - <HackerBackground /> (full-viewport ambient layer, mounted in root layout)
 //
@@ -23,7 +23,7 @@ export interface RainOptions {
   alpha?: number;
   /** Head glyph opacity — the leading character of each column. */
   headAlpha?: number;
-  /** Green tint. Ambient uses the spec's #39FF88. */
+  /** Brand blue tint used for the ambient code-rain effect. */
   color?: string;
   /** Seed the very first frame pre-filled so it never starts empty. */
   prefill?: boolean;
@@ -61,7 +61,7 @@ export function startRain(
     speed = 5.2, // rows per second — slow drift
     alpha = 0.1,
     headAlpha = 0.22,
-    color = "#39ff88",
+    color = "#3b82f6",
     prefill = true,
     dim = 0,
   } = opts;

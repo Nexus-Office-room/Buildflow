@@ -174,7 +174,7 @@ export default function OnboardingTour({ autoStart }: { autoStart: boolean }) {
         style={style}
       >
         <div className="mb-1 flex items-center justify-between">
-          <span className="text-[10px] font-semibold uppercase tracking-wide text-violet-400">
+          <span className="text-[10px] font-semibold uppercase tracking-wide text-red-400">
             Step {stepIndex + 1} of {TOUR_STEPS.length} · {current.title}
           </span>
           <button
@@ -195,7 +195,7 @@ export default function OnboardingTour({ autoStart }: { autoStart: boolean }) {
           </button>
           <button
             onClick={next}
-            className="rounded bg-violet-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-violet-500"
+            className="rounded bg-red-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-red-500"
           >
             {isLast ? "Finish" : "Next"}
           </button>

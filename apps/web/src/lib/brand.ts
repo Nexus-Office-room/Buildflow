@@ -1,6 +1,6 @@
-// Nexus Office brand assets (Addendum 4).
+// Buildflow brand assets (Addendum 4).
 //
-// Single source of truth for the "Built with Nexus Office" watermark badge so
+// Single source of truth for the "Built with Buildflow" watermark badge so
 // the exact same visual appears in the Code Canvas live preview, on deployed
 // sites, and in any future React surface (PDF/doc export, etc.).
 //
@@ -14,17 +14,16 @@ export const NEXUS_LANDING_URL =
 // only and never changes the project-level settings toggles.
 export const WATERMARK_DISMISS_KEY = "nx-wm-dismissed";
 
-// Role-accent gradient: cyan → amber → pink.
+// Buildflow brand colors: red and blue on a near-black base.
 export const WATERMARK_GRADIENT =
-  "linear-gradient(135deg, #22d3ee 0%, #f59e0b 52%, #ec4899 100%)";
+  "linear-gradient(135deg, #ef4444 0%, #3b82f6 100%)";
 
-// Geometric "N" mark — same visual language as the role glyphs (bold white
-// initial on a small rounded tile), reused here for the brand mark.
+// Compact Buildflow mark for the deployed-site snippet fallback.
 // In the React component the logo PNG (/logo.png) renders inside the gradient
 // tile; this inline SVG is the fallback used by the self-contained vanilla
 // snippet (deployed sites) so it stays dependency-free.
 export const N_MARK_SVG =
-  '<svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3.5 13V3.5l9 9V3" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  '<svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 2.5h4.3c3 0 4.7 1.5 4.7 3.7 0 1.5-.8 2.5-2.1 3 1.6.4 2.6 1.5 2.6 3.2 0 2.4-1.8 3.6-4.8 3.6H4V2.5Zm3 2.2v3.2h1.6c1 0 1.5-.6 1.5-1.6 0-1.1-.5-1.6-1.5-1.6H7Zm0 5.3v3.6h2c1.1 0 1.7-.6 1.7-1.8 0-1.1-.6-1.8-1.8-1.8H7Z" fill="#fff"/></svg>';
 
 export const WATERMARK_CSS = `
 .nx-wm{position:fixed;right:14px;bottom:14px;z-index:2147483000;display:flex;align-items:center;gap:1px;opacity:.4;transition:opacity .18s ease;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
@@ -50,9 +49,9 @@ export function watermarkMarkup(): string {
     `<div data-nx-watermark class="nx-wm">` +
     `<a class="nx-wm-pill" href="${href}" target="_blank" rel="noopener noreferrer">` +
     `<span class="nx-wm-mark"><img src="${LOGO_URL}" alt="" width="12" height="12" loading="lazy" onerror="this.style.display='none'"></span>` +
-    `<span class="nx-wm-text">Built with Nexus Office</span>` +
+    `<span class="nx-wm-text">Built with Buildflow</span>` +
     `</a>` +
-    `<button type="button" class="nx-wm-close" aria-label="Dismiss Nexus Office watermark">&times;</button>` +
+    `<button type="button" class="nx-wm-close" aria-label="Dismiss Buildflow watermark">&times;</button>` +
     `</div>`
   );
 }

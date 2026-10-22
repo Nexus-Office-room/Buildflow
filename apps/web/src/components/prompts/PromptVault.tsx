@@ -89,7 +89,7 @@ export default function PromptVault({ initialPrompts }: { initialPrompts: Prompt
                 href="/projects"
                 className="data-mono text-xs text-neutral-500 hover:text-[var(--term-accent)]"
               >
-                ~/nexus
+                ~/buildflow
               </Link>
               <h1 className="mt-1 text-2xl font-semibold">Prompt Vault</h1>
               <p className="data-mono mt-0.5 text-[11px] text-neutral-600">
@@ -99,7 +99,7 @@ export default function PromptVault({ initialPrompts }: { initialPrompts: Prompt
           </div>
           <button
             onClick={() => setEditing("new")}
-            className="btn-terminal data-mono rounded-md bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-500"
+            className="btn-terminal data-mono rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-500"
           >
             + new prompt
           </button>
@@ -228,7 +228,7 @@ function TagChip({
     <button
       onClick={onClick}
       className={`rounded-full px-2.5 py-1 text-xs ${
-        active ? "bg-violet-600 text-white" : "bg-neutral-900 text-neutral-400 hover:bg-neutral-800"
+        active ? "bg-red-600 text-white" : "bg-neutral-900 text-neutral-400 hover:bg-neutral-800"
       }`}
     >
       {label}
@@ -314,7 +314,7 @@ function PromptEditor({
         <button
           onClick={handleSave}
           disabled={saving}
-          className="rounded-md bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-500 disabled:opacity-50"
+          className="rounded-md bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-500 disabled:opacity-50"
         >
           {saving ? "Saving…" : "Save"}
         </button>
