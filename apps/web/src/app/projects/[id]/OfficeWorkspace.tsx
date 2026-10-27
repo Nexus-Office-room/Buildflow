@@ -10,7 +10,7 @@ import ConnectionsPanel from "@/components/settings/ConnectionsPanel";
 import IntegrationsPanel from "@/components/settings/IntegrationsPanel";
 import BrandingPanel from "@/components/settings/BrandingPanel";
 import UpgradeCard from "@/components/settings/UpgradeCard";
-import NexusLogo from "@/components/brand/NexusLogo";
+import BuildflowLogo from "@/components/brand/BuildflowLogo";
 import AccountPanel from "@/components/settings/AccountPanel";
 import DisplayNamePrompt from "@/components/account/DisplayNamePrompt";
 import DeployDesk from "@/components/deploy/DeployDesk";
@@ -76,7 +76,7 @@ export default function OfficeWorkspace({
       <OnboardingTour autoStart={false} />
       <header className="glass-panel flex items-center justify-between border-x-0 border-t-0 px-4 py-2">
         <div className="flex min-w-0 items-center gap-3">
-          <NexusLogo surface="nav" className="shrink-0" />
+          <BuildflowLogo surface="nav" className="shrink-0" />
           {/* Addendum 14: terminal-style breadcrumb — repo path as console cwd. */}
           <Link
             href="/projects"

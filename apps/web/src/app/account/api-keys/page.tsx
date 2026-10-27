@@ -2,10 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import NexusLogo from "@/components/brand/NexusLogo";
+import BuildflowLogo from "@/components/brand/BuildflowLogo";
 
 // Account → API Keys (Addendum 15). Users mint `nxo_live_...` credentials for
-// the Nexus CLI / API. The raw token is displayed exactly once, immediately
+// the Buildflow CLI / API. The raw token is displayed exactly once, immediately
 // after creation, and can never be fetched again — only its SHA-256 hash is
 // stored server-side.
 
@@ -197,7 +197,7 @@ export default function ApiKeysPage() {
     <div className="min-h-screen px-6 py-10 text-neutral-100">
       <div className="mx-auto max-w-3xl">
         <div className="mb-8 flex items-center gap-3">
-          <NexusLogo surface="nav" />
+          <BuildflowLogo surface="nav" />
           <h1 className="text-2xl font-semibold">API Keys</h1>
           <Link href="/account/profile" className="ml-auto text-sm text-neutral-400 hover:text-neutral-200">
             ← Account
@@ -244,7 +244,7 @@ export default function ApiKeysPage() {
         <section className="glass-panel mb-8 rounded-xl p-5">
           <h2 className="text-sm font-semibold text-neutral-200">Generate a new key</h2>
           <p className="mb-4 mt-1 text-xs text-neutral-500">
-            Keys authenticate the Nexus CLI and API as you. Read-only scopes are
+            Keys authenticate the Buildflow CLI and API as you. Read-only scopes are
             the safe default — write and deploy scopes must be selected explicitly.
           </p>
 
@@ -339,7 +339,7 @@ export default function ApiKeysPage() {
           )}
           {tokens && tokens.length === 0 && (
             <p className="rounded-md border border-dashed border-neutral-800 px-4 py-6 text-center text-xs text-neutral-500">
-              No API keys yet. Generate one above to use the Nexus CLI and API.
+              No API keys yet. Generate one above to use the Buildflow CLI and API.
             </p>
           )}
           {tokens && tokens.length > 0 && (

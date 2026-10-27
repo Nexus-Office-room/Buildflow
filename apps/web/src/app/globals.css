@@ -242,6 +242,227 @@ body:has(.auth-shell) .nx-rain {
   display: none;
 }
 
+/* Keep the missing-configuration screen quiet and readable while the
+   workspace keeps its ambient backdrop. */
+body:has(.setup-shell) .nx-backdrop,
+body:has(.setup-shell) .nx-rain,
+body:has(.setup-shell) .crt-overlay {
+  display: none;
+}
+
+body:has(.setup-shell) aside.patch-companion {
+  display: none !important;
+}
+
+/* Public Buildflow landing page: editorial split hero with a cursor-driven
+   mask reveal. The workspace mockup is local markup, so it stays crisp and
+   does not depend on a third-party image or CDN. */
+.buildflow-landing {
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+  background:
+    radial-gradient(ellipse 46rem 34rem at 84% 27%, rgba(59, 130, 246, 0.09), transparent 72%),
+    radial-gradient(ellipse 38rem 28rem at 4% 8%, rgba(239, 68, 68, 0.07), transparent 74%);
+}
+
+.landing-header {
+  position: relative;
+  z-index: 2;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.065);
+}
+
+.landing-eyebrow {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(12, 14, 20, 0.76);
+}
+
+.hero-headline-accent {
+  color: #a9c8ff;
+  text-shadow: 0 0 42px rgba(59, 130, 246, 0.24);
+}
+
+.mask-hero-stage {
+  --spot-x: 64%;
+  --spot-y: 48%;
+  position: relative;
+  min-width: 0;
+  aspect-ratio: 1.15 / 1;
+  isolation: isolate;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 18px;
+  background:
+    radial-gradient(ellipse at 66% 45%, rgba(59, 130, 246, 0.12), transparent 51%),
+    radial-gradient(ellipse at 11% 84%, rgba(239, 68, 68, 0.09), transparent 36%),
+    rgba(8, 10, 15, 0.66);
+  box-shadow: 0 34px 90px rgba(0, 0, 0, 0.34), inset 0 1px rgba(255, 255, 255, 0.045);
+  overflow: hidden;
+}
+
+.mask-hero-stage::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.028) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px);
+  background-size: 42px 42px;
+  content: "";
+  mask-image: linear-gradient(to bottom, black, transparent 92%);
+}
+
+.stage-orbit {
+  position: absolute;
+  z-index: -1;
+  aspect-ratio: 1;
+  border: 1px solid rgba(91, 145, 255, 0.1);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.stage-orbit-one {
+  width: 82%;
+  top: 5%;
+  right: -15%;
+}
+
+.stage-orbit-two {
+  width: 56%;
+  top: 18%;
+  right: -2%;
+  border-color: rgba(239, 68, 68, 0.11);
+}
+
+.preview-layer {
+  position: absolute;
+  inset: 8% 5% 13%;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.preview-layer-base {
+  opacity: 0.78;
+  filter: saturate(0.55);
+}
+
+.preview-layer-reveal {
+  opacity: 0;
+  filter: saturate(1.2) brightness(1.08);
+  mask-image: radial-gradient(circle 190px at var(--spot-x) var(--spot-y), #000 0%, rgba(0, 0, 0, 0.87) 48%, rgba(0, 0, 0, 0.24) 76%, transparent 100%);
+  -webkit-mask-image: radial-gradient(circle 190px at var(--spot-x) var(--spot-y), #000 0%, rgba(0, 0, 0, 0.87) 48%, rgba(0, 0, 0, 0.24) 76%, transparent 100%);
+  transition: opacity 240ms ease;
+}
+
+.is-revealed .preview-layer-reveal {
+  opacity: 1;
+}
+
+.preview-window {
+  width: min(100%, 590px);
+  overflow: hidden;
+  border: 1px solid rgba(212, 221, 239, 0.15);
+  border-radius: 12px;
+  background: linear-gradient(145deg, rgba(25, 29, 39, 0.97), rgba(13, 16, 23, 0.98));
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.55), 0 0 45px rgba(59, 130, 246, 0.09);
+  transform: perspective(1200px) rotateY(-5deg) rotateX(1.5deg);
+}
+
+.preview-topbar {
+  display: flex;
+  height: 38px;
+  align-items: center;
+  gap: 13px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  padding: 0 13px;
+  background: rgba(255, 255, 255, 0.018);
+  color: #828b9b;
+  font: 9px var(--font-geist-mono), monospace;
+  letter-spacing: 0.04em;
+}
+
+.preview-dots { display: flex; gap: 5px; }
+.preview-dots i, .preview-live i, .stage-caption i { display: block; width: 6px; height: 6px; border-radius: 50%; }
+.preview-dots i:nth-child(1) { background: #ef5b60; }
+.preview-dots i:nth-child(2) { background: #d9a344; }
+.preview-dots i:nth-child(3) { background: #49bd82; }
+.preview-path { flex: 1; }
+.preview-live { display: inline-flex; align-items: center; gap: 5px; color: #a7b2c3; font-size: 8px; }
+.preview-live i { width: 5px; height: 5px; background: #55dca0; box-shadow: 0 0 9px rgba(85, 220, 160, 0.7); }
+
+.preview-content { display: grid; min-height: 322px; grid-template-columns: 43px 1fr; }
+.preview-sidebar { display: flex; flex-direction: column; align-items: center; gap: 14px; border-right: 1px solid rgba(255, 255, 255, 0.06); padding: 12px 0; }
+.preview-sidebar-mark { display: grid; width: 25px; height: 25px; place-items: center; border: 1px solid rgba(96, 145, 255, 0.3); border-radius: 7px; background: rgba(59, 130, 246, 0.12); }
+.preview-sidebar-mark img { width: 16px; height: 16px; }
+.preview-sidebar > i { width: 15px; height: 15px; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 5px; }
+.preview-sidebar > i.selected { border-color: rgba(92, 146, 255, 0.66); background: rgba(59, 130, 246, 0.23); box-shadow: 0 0 15px rgba(59, 130, 246, 0.13); }
+.preview-sidebar-bottom { width: 17px; height: 17px; margin-top: auto; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 50%; }
+.preview-main { min-width: 0; padding: 20px 22px 15px; }
+.preview-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.preview-kicker, .preview-team-copy > span { display: block; color: #7a869b; font: 8px var(--font-geist-mono), monospace; letter-spacing: 0.12em; }
+.preview-heading h2 { margin: 6px 0 0; color: #eef1f7; font-size: clamp(13px, 1.6vw, 18px); font-weight: 550; letter-spacing: -0.04em; }
+.preview-create { white-space: nowrap; border: 1px solid rgba(91, 145, 255, 0.28); border-radius: 5px; padding: 6px 8px; color: #c5d8ff; font-size: 8px; }
+.preview-team { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 20px; border: 1px solid rgba(255, 255, 255, 0.075); border-radius: 7px; padding: 11px 12px; background: linear-gradient(100deg, rgba(59, 130, 246, 0.1), rgba(239, 68, 68, 0.045)); }
+.preview-team-copy strong { display: block; margin-top: 5px; color: #d5dbe6; font-size: 9px; font-weight: 500; }
+.preview-role-stack { display: flex; }
+.preview-role-stack b { display: grid; width: 22px; height: 22px; margin-left: -5px; place-items: center; border: 1px solid #161922; border-radius: 50%; background: #762f3b; color: white; font: 7px var(--font-geist-mono), monospace; }
+.preview-role-stack b:nth-child(2) { background: #28518e; }
+.preview-role-stack b:nth-child(3) { background: #4b5261; }
+.preview-role-stack b:nth-child(4) { background: #825f24; }
+.preview-role-stack b:nth-child(5) { background: #634078; }
+.preview-section-title { display: flex; justify-content: space-between; margin: 18px 0 8px; color: #b6becd; font-size: 9px; font-weight: 550; }
+.preview-section-title span:last-child { color: #8293b3; font-size: 8px; font-weight: 400; }
+.preview-projects { display: grid; gap: 6px; }
+.preview-project { display: flex; align-items: center; gap: 9px; min-width: 0; border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 6px; padding: 7px 8px; background: rgba(255, 255, 255, 0.018); }
+.project-symbol { display: grid; width: 24px; height: 24px; flex: none; place-items: center; border-radius: 5px; background: rgba(59, 130, 246, 0.14); color: #91b6ff; font-size: 13px; }
+.project-symbol.red { background: rgba(239, 68, 68, 0.12); color: #ff9094; }
+.project-info { display: grid; min-width: 0; flex: 1; gap: 2px; }
+.project-info strong { overflow: hidden; color: #dce1eb; font-size: 8px; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
+.project-info small { overflow: hidden; color: #747f91; font-size: 7px; text-overflow: ellipsis; white-space: nowrap; }
+.project-arrow { color: #78869d; font-size: 10px; }
+.preview-terminal { display: flex; align-items: center; gap: 7px; margin-top: 9px; border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 5px; padding: 7px 9px; color: #7b8798; font: 8px var(--font-geist-mono), monospace; }
+.terminal-prompt { color: #75a5ff; }
+.terminal-cursor { width: 5px; height: 9px; background: #ef676c; opacity: 0.8; }
+
+.stage-caption { position: absolute; right: 18px; bottom: 16px; left: 18px; display: flex; align-items: center; justify-content: space-between; color: #758094; font: 8px var(--font-geist-mono), monospace; letter-spacing: 0.12em; }
+.stage-caption span:first-child { display: inline-flex; align-items: center; gap: 7px; color: #bdc7d7; }
+.stage-caption i { width: 5px; height: 5px; background: #4b8cff; box-shadow: 0 0 9px rgba(75, 140, 255, 0.7); }
+.reveal-toggle { position: absolute; right: 15px; top: 15px; display: inline-flex; align-items: center; gap: 7px; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 999px; background: rgba(7, 9, 14, 0.75); padding: 7px 10px; color: #c0c8d5; font-size: 9px; backdrop-filter: blur(12px); transition: border-color 160ms ease, background 160ms ease; }
+.reveal-toggle:hover { border-color: rgba(113, 157, 255, 0.55); background: rgba(30, 42, 67, 0.72); }
+.reveal-toggle:focus-visible { outline: 2px solid #7da8ff; outline-offset: 3px; }
+.reveal-toggle-dot { width: 6px; height: 6px; border-radius: 50%; background: #78859b; }
+.is-pinned .reveal-toggle-dot { background: #70a1ff; box-shadow: 0 0 10px rgba(80, 139, 255, 0.8); }
+
+@media (max-width: 1023px) {
+  .mask-hero-stage { width: min(100%, 680px); margin-inline: auto; }
+  .preview-layer { inset-inline: 7%; }
+}
+
+@media (max-width: 520px) {
+  .landing-header { padding-inline: 18px; }
+  .landing-hero { gap: 30px; padding-inline: 20px; }
+  .mask-hero-stage { aspect-ratio: 0.96 / 1; border-radius: 13px; }
+  .preview-layer { inset: 13% 3% 16%; }
+  .preview-window { transform: none; }
+  .preview-content { min-height: 270px; grid-template-columns: 34px 1fr; }
+  .preview-main { padding: 16px 12px 12px; }
+  .preview-topbar { height: 32px; gap: 8px; padding-inline: 9px; }
+  .preview-team { margin-top: 14px; padding: 9px; }
+  .preview-section-title { margin-top: 14px; }
+  .stage-caption { right: 12px; left: 12px; font-size: 7px; }
+  .reveal-toggle { top: 10px; right: 10px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .preview-layer-reveal { opacity: 0.42; mask-image: none; -webkit-mask-image: none; transition: none; }
+  .reveal-toggle { transition: none; }
+}
+
+.setup-shell {
+  background:
+    radial-gradient(ellipse at 12% 8%, rgba(239, 68, 68, 0.09), transparent 34rem),
+    radial-gradient(ellipse at 90% 92%, rgba(59, 130, 246, 0.1), transparent 38rem),
+    #0b0d12;
+}
+
 /* Patch, the small interactive Buildflow companion. The 8×11 atlas is shown at
    half scale; row zero contains the six-frame idle animation. */
 .patch-companion {

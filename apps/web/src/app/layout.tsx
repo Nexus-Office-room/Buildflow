@@ -18,6 +18,9 @@ const geistMono = Geist_Mono({
 // mobile chrome, and social preview — all derived from public/logo.png by
 // `npm run assets` (scripts/generate-brand-assets.mjs).
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_NEXUS_URL || "https://nexus-office-pi.vercel.app"
+  ),
   title: {
     default: "Buildflow",
     template: "%s · Buildflow",
@@ -44,7 +47,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Buildflow",
     description: "A five-role AI dev team in one office — plan, build, review, ship.",
-    images: [{ url: "/brand/buildflow-mark.svg", width: 128, height: 128, alt: "Buildflow" }],
+    images: [{ url: "/brand/icon-512.png", width: 512, height: 512, alt: "Buildflow" }],
   },
 };
 
@@ -63,7 +66,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-full flex flex-col">
         {children}
         <PatchCompanion />
-        <NexusBackdrop />
+        <BuildflowBackdrop />
         <HackerBackground />
         {/* Addendum 14: CRT scanlines + vignette above backdrop/rain, below content. */}
         <div aria-hidden="true" className="crt-overlay" />
@@ -86,6 +89,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 // - `pointer-events: none` and `z-index: -1` keep it strictly behind the app
 //   shell — clicks, scrolling, and layout are unaffected; `aria-hidden` keeps
 //   it out of the a11y tree.
-function NexusBackdrop() {
+function BuildflowBackdrop() {
   return <div aria-hidden="true" className="nx-backdrop" />;
 }

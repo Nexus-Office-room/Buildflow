@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import NexusLogo from "@/components/brand/NexusLogo";
+import BuildflowLogo from "@/components/brand/BuildflowLogo";
 import type { Prompt } from "@/types/db";
 import { createNexusClient } from "@nexus-office/api-client";
 
@@ -83,7 +83,7 @@ export default function PromptVault({ initialPrompts }: { initialPrompts: Prompt
       <div className="mx-auto max-w-3xl">
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <NexusLogo surface="nav" />
+            <BuildflowLogo surface="nav" />
             <div>
               <Link
                 href="/projects"

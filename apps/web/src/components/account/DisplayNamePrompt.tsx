@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import NexusLogo from "@/components/brand/NexusLogo";
+import BuildflowLogo from "@/components/brand/BuildflowLogo";
 import { createClient } from "@/lib/supabase/client";
 import { createNexusClient } from "@nexus-office/api-client";
 
@@ -81,7 +81,7 @@ export default function DisplayNamePrompt() {
     >
       <div className="glass-panel w-full max-w-sm rounded-xl p-8">
         <div className="mb-5 flex flex-col items-center text-center">
-          <NexusLogo surface="card" glow className="mb-3" />
+          <BuildflowLogo surface="card" glow className="mb-3" />
           <h2 className="text-xl font-semibold text-neutral-100">
             What should we call you?
           </h2>

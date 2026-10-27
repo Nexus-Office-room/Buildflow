@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { sanitizeDisplayName } from "@/lib/profile";
-import NexusLogo from "@/components/brand/NexusLogo";
+import BuildflowLogo from "@/components/brand/BuildflowLogo";
 
 type MeInfo = {
   displayName: string;
@@ -185,7 +185,7 @@ export default function ProfilePage() {
     <div className="min-h-screen px-6 py-10 text-neutral-100">
       <div className="mx-auto max-w-2xl">
         <div className="mb-8 flex items-center gap-3">
-          <NexusLogo surface="nav" />
+          <BuildflowLogo surface="nav" />
           <h1 className="text-2xl font-semibold">Account</h1>
           <Link href="/projects" className="ml-auto text-sm text-neutral-400 hover:text-neutral-200">
             ← Back to workspace

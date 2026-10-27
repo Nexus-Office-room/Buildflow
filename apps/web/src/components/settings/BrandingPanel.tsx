@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import NexusWatermark from "@/components/brand/NexusWatermark";
+import BuildflowWatermark from "@/components/brand/BuildflowWatermark";
 import type { Project } from "@/types/db";
 import { createNexusClient } from "@nexus-office/api-client";
 
@@ -102,7 +102,7 @@ export default function BrandingPanel({
       <div className="mt-5 rounded-lg border border-neutral-800 bg-neutral-950 p-3">
         <p className="mb-2 text-xs text-neutral-500">Badge preview:</p>
         <div className="relative h-14 overflow-hidden rounded border border-neutral-800 bg-neutral-900">
-          <NexusWatermark />
+          <BuildflowWatermark />
         </div>
         <p className="mt-2 text-[11px] text-neutral-600">
           Low opacity until hovered; the × hides it for this browser session only.

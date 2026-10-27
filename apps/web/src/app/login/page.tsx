@@ -4,7 +4,7 @@ import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import SetupRequired from "@/components/SetupRequired";
-import NexusLogo from "@/components/brand/NexusLogo";
+import BuildflowLogo from "@/components/brand/BuildflowLogo";
 
 // `useSearchParams` below opts this page out of static prerendering unless it
 // sits behind a Suspense boundary (Next.js CSR bailout). The default export
@@ -23,7 +23,7 @@ function LoginFallback() {
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
       <div className="glass-panel w-full max-w-sm rounded-2xl border border-white/10 bg-[#0c0f15]/95 p-8 text-center shadow-[0_24px_90px_rgba(0,0,0,.55)]">
-        <NexusLogo surface="card" className="mb-3" />
+        <BuildflowLogo surface="card" className="mb-3" />
         <p className="text-sm text-neutral-400">Loading your workspace…</p>
       </div>
     </div>
@@ -104,7 +104,7 @@ function LoginForm({ initialMode = "signin" }: { initialMode?: "signin" | "signu
       <div className="glass-panel relative w-full max-w-sm overflow-hidden rounded-2xl border border-white/10 bg-[#0c0f15]/95 p-7 shadow-[0_24px_90px_rgba(0,0,0,.55)] sm:p-8">
         <div aria-hidden="true" className="absolute inset-x-10 top-0 h-px bg-gradient-to-r from-transparent via-blue-400/60 to-transparent" />
         <div className="mb-5 flex flex-col items-center text-center">
-          <NexusLogo surface="card" className="mb-4" />
+          <BuildflowLogo surface="card" className="mb-4" />
           <p className="mb-2 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-blue-300">
             <span className="h-1.5 w-1.5 rounded-full bg-red-400" /> Buildflow workspace
           </p>

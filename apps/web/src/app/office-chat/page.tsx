@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore, type FormEvent } from "react";
 import Link from "next/link";
-import NexusLogo from "@/components/brand/NexusLogo";
+import BuildflowLogo from "@/components/brand/BuildflowLogo";
 
 interface Room {
   id: string;
@@ -191,7 +191,7 @@ export default function OfficeChatPage() {
     <main className="min-h-screen px-4 py-6 text-neutral-100 sm:px-8 sm:py-10">
       <div className="mx-auto max-w-6xl">
         <header className="mb-6 flex items-center gap-4">
-          <NexusLogo surface="nav" />
+          <BuildflowLogo surface="nav" />
           <p className="hidden font-mono text-xs text-neutral-500 sm:block">/ team rooms</p>
           <Link href="/projects" className="ml-auto font-mono text-xs text-neutral-400 hover:text-white">← Projects</Link>
         </header>

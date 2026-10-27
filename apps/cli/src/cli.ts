@@ -8,7 +8,7 @@ import { createNexusClient, ApiError } from "@nexus-office/api-client";
 import { listVaultPrompts, ensureVaultRepo, getAuthenticatedUser } from "@nexus/github-sync";
 
 
-// @nexus-office/cli — the `nexus` command (Addendum 17 Phase 3).
+// @buildflow/cli — the `buildflow` command (Addendum 17 Phase 3).
 // Built on @nexus-office/api-client + @nexus/github-sync from the monorepo,
 // so the CLI and web app share one implementation of pipeline calls,
 // merging, and GitHub sync.
@@ -23,7 +23,7 @@ const ROLE_COLORS: Record<string, string> = {
 const RESET = "\x1b[0m";
 const DIM = "\x1b[2m";
 
-// Human-readable scope names for `nexus whoami` (mirrors the web app's
+// Human-readable scope names for `buildflow whoami` (mirrors the web app's
 // API_TOKEN_SCOPE_LABELS — the server stays the enforcement point).
 const SCOPE_LABELS: Record<string, string> = {
   "projects:read": "Read your projects (read-only)",
@@ -35,7 +35,7 @@ const SCOPE_LABELS: Record<string, string> = {
 
 function makeClient() {
   const cfg = loadConfig();
-  // Scoped Nexus API token (login --api-token) wins if present — it's the
+  // Scoped Buildflow API token (login --api-token) wins if present — it's the
   // least-privilege credential. Otherwise fall back to the Supabase session
   // token from the browser flow. Both travel as Bearer and hit the same
   // server-side routes; the nxo_ path additionally enforces scopes.
@@ -46,7 +46,7 @@ function makeClient() {
 function requireCredential(): void {
   const cfg = loadConfig();
   if (!cfg.apiToken && !cfg.accessToken) {
-    throw new Error("Not logged in. Run `nexus login` first.");
+    throw new Error("Not logged in. Run `buildflow login` first.");
   }
 }
 
@@ -56,7 +56,7 @@ function roleLabel(role: string): string {
 }
 
 // ---------------------------------------------------------------------------
-// nexus login / logout
+// buildflow login / logout
 // ---------------------------------------------------------------------------
 
 async function loginCommand(opts: { token?: string; apiToken?: string }) {
@@ -88,7 +88,7 @@ async function logoutCommand(opts: { yes?: boolean }) {
 }
 
 // ---------------------------------------------------------------------------
-// nexus whoami — verify the stored credential works; show what it is
+// buildflow whoami — verify the stored credential works; show what it is
 // ---------------------------------------------------------------------------
 
 async function whoamiCommand() {
@@ -98,9 +98,9 @@ async function whoamiCommand() {
   try {
     const session = await nexus.getSession();
     if (!session.authenticated) {
-      throw new Error("Credential rejected (401) — token revoked or expired? Re-run `nexus login`.");
+      throw new Error("Credential rejected (401) — token revoked or expired? Re-run `buildflow login`.");
     }
-    const kind = cfg.apiToken ? "scoped Nexus API token" : "Supabase session token";
+    const kind = cfg.apiToken ? "scoped Buildflow API token" : "Supabase session token";
     const name = session.displayName ? ` as ${session.displayName}` : "";
     console.log(`Authenticated against ${cfg.baseUrl}${name} via ${kind}.`);
     if (session.apiToken) {
@@ -113,14 +113,14 @@ async function whoamiCommand() {
     console.log(`${projects.length} project(s) visible.`);
   } catch (err) {
     if (err instanceof ApiError && err.status === 401) {
-      throw new Error("Credential rejected (401) — token revoked or expired? Re-run `nexus login`.");
+      throw new Error("Credential rejected (401) — token revoked or expired? Re-run `buildflow login`.");
     }
     throw err;
   }
 }
 
 // ---------------------------------------------------------------------------
-// nexus projects list
+// buildflow projects list
 // ---------------------------------------------------------------------------
 
 async function projectsList() {
@@ -138,7 +138,7 @@ async function projectsList() {
 }
 
 // ---------------------------------------------------------------------------
-// nexus chat — 5-role pipeline with isolation-aware review
+// buildflow chat — 5-role pipeline with isolation-aware review
 // ---------------------------------------------------------------------------
 
 async function chatCommand(message: string, opts: { project?: string; yes?: boolean }) {
@@ -182,7 +182,7 @@ async function chatCommand(message: string, opts: { project?: string; yes?: bool
   } else if (isolation.status === "applied") {
     console.log(
       `\n✓ Auto-merged ${isolation.files.length} file(s): ${isolation.files.join(", ")}` +
-        `\n  ${DIM}undo anytime with \`nexus undo\`${RESET}`
+        `\n  ${DIM}undo anytime with \`buildflow undo\`${RESET}`
     );
   } else if (isolation.status === "rejected") {
     console.log("\n✕ This run's changes were rejected — nothing was merged.");
@@ -200,7 +200,7 @@ function prompt(question: string): Promise<string> {
 }
 
 // ---------------------------------------------------------------------------
-// nexus sync — force-push local state to GitHub
+// buildflow sync — force-push local state to GitHub
 // ---------------------------------------------------------------------------
 
 async function syncCommand(opts: { project?: string; yes?: boolean }) {
@@ -233,7 +233,7 @@ async function syncCommand(opts: { project?: string; yes?: boolean }) {
 }
 
 // ---------------------------------------------------------------------------
-// nexus vault list / use
+// buildflow vault list / use
 // ---------------------------------------------------------------------------
 
 async function vaultList() {
@@ -244,7 +244,7 @@ async function vaultList() {
   } catch {
     // Fall back to reading the GitHub vault repo directly.
     const cfg = loadConfig();
-    if (!cfg.accessToken) throw new Error("Not logged in — run `nexus login` first.");
+    if (!cfg.accessToken) throw new Error("Not logged in — run `buildflow login` first.");
     const me = await getAuthenticatedUser(cfg.accessToken);
     const repo = await ensureVaultRepo(cfg.accessToken, me.login);
     const prompts = await listVaultPrompts(cfg.accessToken, repo);
@@ -267,13 +267,13 @@ async function vaultUse(id: string) {
   const prompts = await nexus.listVaultPrompts();
   const found = prompts.find((p) => p.id === id || p.title.toLowerCase() === id.toLowerCase());
   if (!found) {
-    throw new Error(`No prompt with id or title "${id}". Run \`nexus vault list\`.`);
+    throw new Error(`No prompt with id or title "${id}". Run \`buildflow vault list\`.`);
   }
   console.log(`\n# ${found.title}\n\n${found.body}\n`);
 }
 
 // ---------------------------------------------------------------------------
-// nexus deploy
+// buildflow deploy
 // ---------------------------------------------------------------------------
 
 async function deployCommand(opts: { project?: string; yes?: boolean }) {
@@ -291,7 +291,7 @@ async function deployCommand(opts: { project?: string; yes?: boolean }) {
 }
 
 // ---------------------------------------------------------------------------
-// nexus undo
+// buildflow undo
 // ---------------------------------------------------------------------------
 
 async function undoCommand(opts: { project?: string }) {
@@ -309,14 +309,14 @@ async function repl(opts: { project?: string; yes?: boolean }) {
   const nexus = makeClient();
   const project = await resolveProject(nexus.client, opts.project);
   console.log(
-    `Nexus Office — ${project.name}${project.github_repo ? ` (${project.github_repo})` : ""}`
+    `Buildflow — ${project.name}${project.github_repo ? ` (${project.github_repo})` : ""}`
   );
   console.log(`${DIM}Type a message for your team, or /quit to exit.${RESET}\n`);
 
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
-    prompt: "nexus> ",
+    prompt: "buildflow> ",
   });
   rl.prompt();
 
@@ -362,15 +362,15 @@ async function repl(opts: { project?: string; yes?: boolean }) {
 const program = new Command();
 
 program
-  .name("nexus")
-  .description("Nexus Office CLI — your 5-role AI dev team in the terminal.")
+  .name("buildflow")
+  .description("Buildflow CLI — your 5-role AI dev team in the terminal.")
   .version("0.1.0");
 
 program
   .command("login")
-  .description("Sign in via the browser, paste a Supabase token (--token), or use a scoped Nexus API token (--api-token, nxo_live_...). Stores credentials at ~/.nexus/config.")
+  .description("Sign in via the browser, paste a Supabase token (--token), or use a scoped Buildflow API token (--api-token, nxo_live_...). Stores credentials at ~/.nexus/config.")
   .option("--token <token>", "sign in with a Supabase access token instead of the browser")
-  .option("--api-token <token>", "sign in with a scoped Nexus API token (minted at /account/api-keys); validated before storing")
+  .option("--api-token <token>", "sign in with a scoped Buildflow API token (minted at /account/api-keys); validated before storing")
   .action(loginCommand);
 
 program
@@ -409,7 +409,7 @@ const vault = program.command("vault").description("Browse your Prompt Vault.");
 vault.command("list").description("List prompts in your vault.").action(vaultList);
 vault
   .command("use <id>")
-  .description("Print a prompt's full body (pipe it into nexus chat).")
+  .description("Print a prompt's full body (pipe it into buildflow chat).")
   .action(vaultUse);
 
 program
@@ -435,7 +435,7 @@ if (process.argv.length <= 2) {
   program.parseAsync(process.argv).catch((err: unknown) => {
     if (err instanceof ApiError) {
       console.error(`Error (${err.status}): ${err.message}`);
-      if (err.status === 401) console.error("Run `nexus login` first.");
+      if (err.status === 401) console.error("Run `buildflow login` first.");
       if (err.status === 403 && /scope/i.test(err.message))
         console.error("Your API token lacks a required scope — mint a new one at /account/api-keys with the scope checked.");
     } else {

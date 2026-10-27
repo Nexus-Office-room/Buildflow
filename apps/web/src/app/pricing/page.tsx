@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import NexusLogo from "@/components/brand/NexusLogo";
+import BuildflowLogo from "@/components/brand/BuildflowLogo";
 
 export const metadata: Metadata = {
   title: "Pricing",
@@ -50,7 +50,7 @@ export default function PricingPage() {
       <div className="mx-auto max-w-4xl px-6 py-12">
         <div className="mb-10 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <NexusLogo surface="nav" />
+            <BuildflowLogo surface="nav" />
             <span className="text-sm font-semibold">Buildflow</span>
           </Link>
           <Link

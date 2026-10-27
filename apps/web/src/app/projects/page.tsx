@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import RepoImportPicker from "@/components/projects/RepoImportPicker";
 import OnboardingTour from "@/components/onboarding/OnboardingTour";
 import SetupRequired from "@/components/SetupRequired";
-import NexusLogo from "@/components/brand/NexusLogo";
+import BuildflowLogo from "@/components/brand/BuildflowLogo";
 
 export default async function ProjectsPage() {
   if (
@@ -42,7 +42,7 @@ export default async function ProjectsPage() {
 
         <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <NexusLogo surface="nav" />
+            <BuildflowLogo surface="nav" />
             <h1 className="text-2xl font-semibold">Your Projects</h1>
           </div>
           <div className="flex items-center gap-4">

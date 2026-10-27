@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useSyncExternalStore } from "react";
-import NexusLogo from "@/components/brand/NexusLogo";
+import BuildflowLogo from "@/components/brand/BuildflowLogo";
 import {
   NEXUS_LANDING_URL,
   WATERMARK_DISMISS_KEY,
@@ -38,7 +38,7 @@ function getServerSnapshot(): boolean {
 // React twin of the vanilla watermark snippet in lib/brand.ts. Same geometry,
 // same gradient, same session-dismiss behavior — so preview, deployed sites,
 // and any in-app surface (e.g. a future docs export) stay visually identical.
-export default function NexusWatermark() {
+export default function BuildflowWatermark() {
   const visible = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
   const dismiss = useCallback(() => {
@@ -76,7 +76,7 @@ export default function NexusWatermark() {
         >
           {/* Inline SVG mark as fallback (deployed-site snippet has no React); the
               logo image is the primary render for the React component. */}
-          <NexusLogo surface="watermark" className="h-full w-full" />
+          <BuildflowLogo surface="watermark" className="h-full w-full" />
         </span>
         <span className="whitespace-nowrap text-[11.5px] font-semibold tracking-[0.01em] text-neutral-100">
           Built with Buildflow

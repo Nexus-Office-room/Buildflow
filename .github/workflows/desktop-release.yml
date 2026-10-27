@@ -64,8 +64,8 @@ jobs:
           owner: Nexus-Office-room
           repo: Nexus-Office-Downloads
           tagName: ${{ github.ref_name }}
-          releaseName: "Nexus Office Desktop ${{ github.ref_name }}"
-          releaseBody: "Download the ZIP for your computer from the Nexus Office website. The archives contain installers and installation instructions."
+          releaseName: "Buildflow Desktop ${{ github.ref_name }}"
+          releaseBody: "Download the ZIP for your computer from the Buildflow website. The archives contain installers and installation instructions."
           releaseCommitish: main
           releaseDraft: false
           prerelease: false
@@ -78,7 +78,7 @@ jobs:
       - name: Package macOS installer into a ZIP
         if: runner.os == 'macOS'
         run: |
-          echo 'Open the .dmg file and drag Nexus Office into Applications. This build is unsigned and macOS may show a Gatekeeper warning.' > "$RUNNER_TEMP/README.txt"
+          echo 'Open the .dmg file and drag Buildflow into Applications. This build is unsigned and macOS may show a Gatekeeper warning.' > "$RUNNER_TEMP/README.txt"
           zip -j "$RUNNER_TEMP/${{ matrix.archive }}" "$RUNNER_TEMP/README.txt" "apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle/dmg/"*.dmg
       - name: Package Windows installers into a ZIP
         if: runner.os == 'Windows'

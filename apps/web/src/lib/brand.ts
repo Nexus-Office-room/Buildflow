@@ -8,7 +8,7 @@
 // never write into the user's files table, canvas content, or repo sources.
 
 export const NEXUS_LANDING_URL =
-  process.env.NEXT_PUBLIC_NEXUS_URL || "https://nexus-office.app";
+  process.env.NEXT_PUBLIC_NEXUS_URL || "https://nexus-office-pi.vercel.app";
 
 // sessionStorage key: dismissing the badge hides it for that browser session
 // only and never changes the project-level settings toggles.
@@ -30,7 +30,7 @@ export const WATERMARK_CSS = `
 .nx-wm:hover{opacity:1}
 .nx-wm-pill{display:flex;align-items:center;gap:7px;height:30px;padding:0 9px 0 5px;border-radius:9999px;border:1px solid transparent;background:linear-gradient(rgba(12,12,16,.78),rgba(12,12,16,.78)) padding-box,${WATERMARK_GRADIENT} border-box;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);box-shadow:0 4px 16px rgba(0,0,0,.35);text-decoration:none;cursor:pointer}
 .nx-wm-pill:hover{text-decoration:none}
-.nx-wm-mark{display:flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:7px;flex:none;background-image:${WATERMARK_GRADIENT};background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M3.5 13V3.5l9 9V3' stroke='%23ffffff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"),${WATERMARK_GRADIENT};background-size:12px 12px,100% 100%;background-position:center,center;background-repeat:no-repeat,no-repeat}
+.nx-wm-mark{display:flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:7px;flex:none;background-image:${WATERMARK_GRADIENT};background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 2.5h4.3c3 0 4.7 1.5 4.7 3.7 0 1.5-.8 2.5-2.1 3 1.6.4 2.6 1.5 2.6 3.2 0 2.4-1.8 3.6-4.8 3.6H4V2.5Z' fill='%23ffffff'/%3E%3C/svg%3E"),${WATERMARK_GRADIENT};background-size:12px 12px,100% 100%;background-position:center,center;background-repeat:no-repeat,no-repeat}
 .nx-wm-mark img{width:12px;height:12px;display:block;border-radius:2px}
 .nx-wm-text{font-size:11.5px;font-weight:600;letter-spacing:.01em;color:#f5f5f5;white-space:nowrap}
 .nx-wm-close{appearance:none;border:0;background:transparent;color:rgba(255,255,255,.5);font-size:14px;line-height:1;padding:4px 3px;cursor:pointer}
@@ -42,7 +42,7 @@ export const WATERMARK_CSS = `
 const LOGO_URL = `${NEXUS_LANDING_URL.replace(/\/$/, "")}/logo.png`;
 
 // Badge markup shared by the vanilla snippet (preview + deployed sites) and the
-// React <NexusWatermark /> component.
+// React <BuildflowWatermark /> component.
 export function watermarkMarkup(): string {
   const href = NEXUS_LANDING_URL.replace(/"/g, "&quot;");
   return (

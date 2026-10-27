@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createNexusClient } from "@nexus-office/api-client";
-import NexusLogo from "@/components/brand/NexusLogo";
+import BuildflowLogo from "@/components/brand/BuildflowLogo";
 
 const nexus = createNexusClient();
 const categories = ["All Builds", "Fullstack", "Mobile", "AI Apps", "Web3", "DevOps"] as const;
@@ -98,7 +98,7 @@ export default function ExploreBoard({ signedIn }: { signedIn: boolean }) {
     <div className="grid min-h-[calc(100vh-5rem)] lg:grid-cols-[220px_minmax(0,1fr)]">
       <aside className="hidden border-r border-white/[0.07] px-5 py-7 lg:block">
         <Link href="/projects" className="mb-10 flex items-center gap-3 text-sm font-semibold tracking-wide text-white">
-          <NexusLogo surface="nav" />
+          <BuildflowLogo surface="nav" />
           Buildflow
         </Link>
         <p className="mb-3 px-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-neutral-600">Workspace</p>

@@ -5,7 +5,7 @@ import { useState } from "react";
 import HackerGlow from "./HackerGlow";
 
 // Addendum 6: single responsive logo component used by the workspace nav,
-// projects/prompts headers, the login card, and <NexusWatermark />.
+// projects/prompts headers, the login card, and <BuildflowWatermark />.
 // next/image serves appropriately sized variants per device rather than always
 // shipping the full 512x512 file; the `sizes` hint keeps fetches correct at
 // every breakpoint (320px → 2560px).
@@ -36,7 +36,7 @@ const SURFACES = {
 
 type Surface = keyof typeof SURFACES;
 
-export default function NexusLogo({
+export default function BuildflowLogo({
   surface,
   className = "",
   glow = false,

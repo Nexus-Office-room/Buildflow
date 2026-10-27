@@ -1,10 +1,11 @@
 {
-  "name": "@nexus-office/cli",
+  "name": "@buildflow/cli",
   "version": "0.1.0",
-  "description": "Nexus Office CLI — your 5-role AI team in the terminal.",
+  "description": "Buildflow CLI \u2014 your 5-role AI team in the terminal.",
   "license": "MIT",
   "type": "module",
   "bin": {
+    "buildflow": "./bin/nexus.js",
     "nexus": "./bin/nexus.js"
   },
   "files": [

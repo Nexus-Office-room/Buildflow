@@ -1,4 +1,4 @@
-# Nexus Office
+# Buildflow
 
 A persistent 5-role AI team (Strategist, Builder, Analyst, QA, Ops) for vibe coders,
 running on Next.js + Supabase, with a terminal CLI over the same API.
@@ -8,7 +8,7 @@ running on Next.js + Supabase, with a terminal CLI over the same API.
 ```
 apps/
   web/                 # Next.js app (UI + API routes)
-  cli/                 # `nexus` CLI (login, chat, sync, vault, deploy, undo, REPL)
+  cli/                 # `buildflow` CLI (login, chat, sync, vault, deploy, undo, REPL)
 packages/
   pipeline-types/      # shared TypeScript types (zero runtime deps)
   github-sync/         # GitHub commit/vault/diff logic shared by web + CLI
@@ -39,10 +39,10 @@ from the root (`npm run dev`, `npm run build`, `npm run typecheck`,
 - **Cost Meter** — running token/cost estimate per project from persisted steps.
 - **Memory Board, Prompt Vault, Deploy Desk, Governance** — role capabilities,
   approval gating, audit log, and an encrypted secrets vault.
-- **CLI** — `nexus login | whoami | projects list | chat | sync | vault | deploy | undo`,
+- **CLI** — `buildflow login | whoami | projects list | chat | sync | vault | deploy | undo`,
   plus a conversational REPL when run with no arguments in a project directory.
   See `apps/cli/`.
-- **Nexus API tokens** — scoped, revocable `nxo_live_…` credentials for the CLI
+- **Buildflow API tokens** — scoped, revocable `nxo_live_…` credentials for the CLI
   and scripts (see [API tokens](#api-tokens-nxo_live)).
 
 ## Setup
@@ -153,7 +153,7 @@ what a token may do is governed by its scopes.
 
 | Scope | Grants |
 |---|---|
-| `projects:read` | List/get projects, read merge candidates, `nexus whoami` |
+| `projects:read` | List/get projects, read merge candidates, `buildflow whoami` |
 | `pipeline:run` | Run the 5-role pipeline, merge/reject/undo run snapshots |
 | `vault:read` | Read Prompt Vault entries |
 | `vault:write` | Create, update, delete Prompt Vault entries |
@@ -175,9 +175,9 @@ npm run cli -- --help
 Build a standalone Node.js 20+ package and install the generated tarball:
 
 ```bash
-npm run build --workspace @nexus-office/cli
-npm pack --workspace @nexus-office/cli
-npm install --global ./nexus-office-cli-0.1.0.tgz
+npm run build --workspace @buildflow/cli
+npm pack --workspace @buildflow/cli
+npm install --global ./buildflow-cli-0.1.0.tgz
 ```
 
 The bundle includes the shared API client and GitHub helpers, so the installed
@@ -185,16 +185,16 @@ CLI does not need the monorepo or a separate `tsx` runtime.
 
 Available commands include `login`, `logout`, `whoami`, `projects list`,
 `chat`, `sync`, `vault list`, `vault use`, `deploy`, and `undo`. In a connected
-project directory, running `nexus` opens the interactive chat REPL.
+project directory, running `buildflow` opens the interactive chat REPL (the legacy `nexus` command remains available).
 
 For example:
 
 ```bash
-nexus login --api-token nxo_live_…   # validated against the server before storing
-nexus whoami                         # shows credential kind + visible project count
+buildflow login --api-token nxo_live_…   # validated against the server before storing
+buildflow whoami                         # shows credential kind + visible project count
 ```
 
-`nexus login` (browser flow) and `nexus login --token` (Supabase access token)
+`buildflow login` (browser flow) and `buildflow login --token` (Supabase access token)
 remain available; `--api-token` is the least-privilege option for shared
 machines and CI. Credentials live in `~/.nexus/config` (mode 0600).
 

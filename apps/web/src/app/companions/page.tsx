@@ -2,7 +2,7 @@
 
 import { useCallback, useSyncExternalStore, useState } from "react";
 import Link from "next/link";
-import NexusLogo from "@/components/brand/NexusLogo";
+import BuildflowLogo from "@/components/brand/BuildflowLogo";
 import { DEFAULT_PET_ID, NEXUS_PETS, PET_STORAGE_KEY } from "@/lib/pets";
 
 export default function CompanionsPage() {
@@ -39,7 +39,7 @@ export default function CompanionsPage() {
     <main className="min-h-screen px-5 py-10 text-neutral-100 sm:px-8">
       <div className="mx-auto max-w-5xl">
         <header className="mb-10 flex items-center gap-4">
-          <NexusLogo surface="nav" />
+          <BuildflowLogo surface="nav" />
           <div className="ml-auto flex items-center gap-4">
             {saved && <span role="status" className="text-xs text-emerald-300">Companion saved</span>}
             <Link href="/projects" className="font-mono text-xs text-neutral-400 hover:text-white">← Projects</Link>

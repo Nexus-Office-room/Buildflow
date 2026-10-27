@@ -27,7 +27,7 @@ export async function resolveProject(
   if (projectId) {
     const found = projects.find((p) => p.id === projectId || p.name === projectId);
     if (!found) {
-      throw new Error(`No project found with id/name "${projectId}". Run \`nexus projects list\`.`);
+      throw new Error(`No project found with id/name "${projectId}". Run \`buildflow projects list\`.`);
     }
     return found;
   }
@@ -41,7 +41,7 @@ export async function resolveProject(
   // No git remote match — fall back to the most recently updated project.
   if (projects.length === 0) {
     throw new Error(
-      "No projects in your Nexus Office account. Create one in the web app first."
+      "No projects in your Buildflow account. Create one in the web app first."
     );
   }
   if (remote) {

@@ -3,7 +3,7 @@ import { exec } from "node:child_process";
 import crypto from "node:crypto";
 import { loadConfig, saveConfig, defaultBaseUrl } from "./config.js";
 
-// `nexus login` — three paths:
+// `buildflow login` — three paths:
 //
 // 1. Browser flow (default): starts a tiny local server on a random port,
 //    opens the web app's /login with a one-time state key. After the user
@@ -11,11 +11,11 @@ import { loadConfig, saveConfig, defaultBaseUrl } from "./config.js";
 //    by POSTing them to the local server. Same auth backend as the web app,
 //    zero new credentials.
 //
-// 2. Token paste (`nexus login --token`): for headless boxes. The user pastes
+// 2. Token paste (`buildflow login --token`): for headless boxes. The user pastes
 //    a Supabase access token (Settings → Account → "CLI token" in the web
 //    app, or from any Supabase auth response).
 //
-// 3. Scoped API token (`nexus login --api-token`): a Nexus API token
+// 3. Scoped API token (`buildflow login --api-token`): a Buildflow API token
 //    (nxo_live_... / nxo_test_...) minted at /account/api-keys. Unlike the
 //    full session token it carries only explicitly-granted scopes
 //    (projects:read, pipeline:run, vault:read, vault:write, deploy:trigger),
@@ -97,14 +97,14 @@ export function looksLikeNexusApiToken(token: string): boolean {
   return /^nxo_(live|test)_[A-Za-z0-9_-]{40,}$/.test(token);
 }
 
-// `nexus login --api-token`: validate a scoped Nexus API token against the
+// `buildflow login --api-token`: validate a scoped Buildflow API token against the
 // live API (one cheap projects:read call) before anything touches disk — a
 // rejected token is never stored. The token itself is never printed.
 export async function loginWithApiToken(baseUrl: string, rawToken: string): Promise<void> {
   const token = rawToken.trim();
   if (!looksLikeNexusApiToken(token)) {
     throw new Error(
-      "That doesn't look like a Nexus API token (expected nxo_live_…, mint one at /account/api-keys). Nothing was stored."
+      "That doesn't look like a Buildflow API token (expected nxo_live_…, mint one at /account/api-keys). Nothing was stored."
     );
   }
 
