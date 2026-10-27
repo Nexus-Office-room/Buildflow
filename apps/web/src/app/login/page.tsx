@@ -98,7 +98,7 @@ function LoginForm({ initialMode = "signin" }: { initialMode?: "signin" | "signu
   }
 
   return (
-    <div className="auth-shell relative isolate flex min-h-screen items-center justify-center overflow-hidden bg-[#080a0f] px-4 py-10">
+    <div className="auth-shell relative isolate flex min-h-screen items-center justify-center overflow-hidden bg-transparent px-4 py-10">
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_18%_18%,rgba(59,130,246,0.14),transparent_38%),radial-gradient(ellipse_at_82%_82%,rgba(239,68,68,0.10),transparent_36%)]" />
       <div aria-hidden="true" className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[34rem] w-[34rem] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/[0.025]" />
       <div className="glass-panel relative w-full max-w-sm overflow-hidden rounded-2xl border border-white/10 bg-[#0c0f15]/95 p-7 shadow-[0_24px_90px_rgba(0,0,0,.55)] sm:p-8">

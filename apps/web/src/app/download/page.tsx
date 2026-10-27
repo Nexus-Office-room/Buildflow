@@ -23,7 +23,7 @@ const systems = [
 
 export default function DownloadPage() {
   return (
-    <main className="min-h-screen bg-[#0b0d12] px-6 py-16 text-neutral-100">
+    <main className="min-h-screen bg-transparent px-6 py-16 text-neutral-100">
       <div className="mx-auto max-w-3xl">
         <Link href="/projects" className="font-mono text-sm text-neutral-500 hover:text-blue-300">← Back to Buildflow</Link>
         <p className="mt-12 font-mono text-xs uppercase tracking-[0.25em] text-blue-300">Buildflow</p>

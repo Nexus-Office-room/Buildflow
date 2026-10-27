@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import HackerBackground from "@/components/brand/HackerBackground";
+import AmbientVideoBackground from "@/components/brand/AmbientVideoBackground";
 import PatchCompanion from "@/components/brand/PatchCompanion";
 import "./globals.css";
 
@@ -67,16 +67,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {children}
         <PatchCompanion />
         <BuildflowBackdrop />
-        <HackerBackground />
-        {/* Addendum 14: CRT scanlines + vignette above backdrop/rain, below content. */}
-        <div aria-hidden="true" className="crt-overlay" />
+        <AmbientVideoBackground />
       </body>
     </html>
   );
 }
 
-// Addendum 6: fixed, full-viewport brand background mounted exactly once at the
-// root, so it applies to every page automatically.
+// Fixed, full-viewport fallback mounted exactly once at the root. The shared
+// video atmosphere layers above it and below every route's content.
 //
 // - `background-color: #0B0D12` fills the layer instantly (no white flash
 //   before the PNG decodes, and a solid fallback on devices that skip the
