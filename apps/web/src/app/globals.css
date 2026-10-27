@@ -165,6 +165,150 @@ body {
   letter-spacing: -0.01em;
 }
 
+/* Project workspace chrome: give the project identity and tools separate
+   breathing room so section navigation never collides with either. */
+.workspace-header {
+  position: relative;
+  z-index: 20;
+  flex: none;
+  border-bottom: 1px solid rgba(123, 151, 195, 0.17);
+  background: rgba(7, 10, 16, 0.9);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.24);
+  backdrop-filter: blur(18px) saturate(125%);
+  -webkit-backdrop-filter: blur(18px) saturate(125%);
+}
+
+.workspace-header__top {
+  display: flex;
+  min-height: 54px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 8px clamp(12px, 2vw, 22px);
+}
+
+.workspace-header__identity,
+.workspace-header__actions {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+}
+
+.workspace-header__identity { gap: 10px; }
+.workspace-header__breadcrumb {
+  flex: none;
+  color: #8290a5;
+  font: 11px/1 var(--font-geist-mono), monospace;
+  text-decoration: none;
+  transition: color 150ms ease;
+}
+.workspace-header__breadcrumb:hover { color: #8bb8ff; }
+.workspace-header__separator { flex: none; color: #4c5b72; font: 12px/1 var(--font-geist-mono), monospace; }
+.workspace-header__title {
+  min-width: 0;
+  overflow: hidden;
+  color: #f0f4fb;
+  font: 600 14px/1.2 var(--font-geist-mono), monospace;
+  letter-spacing: -0.02em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workspace-header__actions { flex: none; gap: 4px; }
+.workspace-shortcut {
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 0 9px;
+  color: #a6b1c2;
+  font: 11px/1 var(--font-geist-mono), monospace;
+  text-decoration: none;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+.workspace-shortcut svg { width: 16px; height: 16px; flex: none; }
+.workspace-shortcut:hover {
+  border-color: rgba(103, 151, 236, 0.2);
+  background: rgba(72, 112, 178, 0.12);
+  color: #e1ecff;
+}
+.workspace-shortcut:focus-visible,
+.workspace-tab:focus-visible {
+  outline: 2px solid #6da4ff;
+  outline-offset: 2px;
+}
+
+.workspace-header__nav {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 4px;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  border-top: 1px solid rgba(255, 255, 255, 0.055);
+  padding: 6px clamp(12px, 2vw, 22px) 8px;
+  scrollbar-width: none;
+}
+.workspace-header__nav::-webkit-scrollbar { display: none; }
+
+.workspace-tab {
+  display: inline-flex;
+  min-height: 32px;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 0 12px;
+  background: transparent;
+  color: #9ba8ba;
+  font: 500 11px/1 var(--font-geist-sans), sans-serif;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, transform 150ms ease;
+}
+.workspace-tab:hover {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.055);
+  color: #edf3fc;
+}
+.workspace-tab:active { transform: translateY(1px); }
+.workspace-tab--active {
+  border-color: rgba(241, 76, 92, 0.32);
+  background: rgba(220, 52, 69, 0.18);
+  color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045);
+}
+
+@media (max-width: 760px) {
+  .workspace-header__top { min-height: 50px; gap: 10px; }
+  .workspace-shortcut { width: 34px; justify-content: center; padding: 0; }
+  .workspace-shortcut span { display: none; }
+  .workspace-header__nav { gap: 3px; padding-top: 5px; padding-bottom: 7px; }
+  .workspace-tab { min-height: 31px; padding-inline: 11px; }
+}
+
+@media (max-width: 480px) {
+  .workspace-header__top { padding-inline: 10px; }
+  .workspace-header__identity { gap: 7px; }
+  .workspace-header__breadcrumb,
+  .workspace-header__separator { display: none; }
+  .workspace-header__title { font-size: 12px; }
+  .workspace-header__actions { gap: 1px; }
+  .workspace-shortcut { width: 30px; min-height: 32px; }
+  .workspace-shortcut svg { width: 15px; height: 15px; }
+  .workspace-header__nav { padding-inline: 10px; }
+  .workspace-tab { min-height: 30px; padding-inline: 10px; font-size: 10px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workspace-header__breadcrumb,
+  .workspace-shortcut,
+  .workspace-tab { transition: none; }
+}
+
 /* Projects masthead: a calmer control surface over the existing terminal world. */
 .projects-header {
   margin-bottom: 2rem;

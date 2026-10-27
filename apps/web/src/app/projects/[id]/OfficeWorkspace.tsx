@@ -74,22 +74,44 @@ export default function OfficeWorkspace({
       {displayName === "" && <DisplayNamePrompt />}
       {/* Addendum 13: tour re-runnable from inside the workspace via "?". */}
       <OnboardingTour autoStart={false} />
-      <header className="glass-panel flex items-center justify-between border-x-0 border-t-0 px-4 py-2">
-        <div className="flex min-w-0 items-center gap-3">
-          <BuildflowLogo surface="nav" className="shrink-0" />
-          {/* Addendum 14: terminal-style breadcrumb — repo path as console cwd. */}
-          <Link
-            href="/projects"
-            className="shrink-0 font-mono text-xs text-neutral-500 hover:text-[var(--term-accent)]"
-          >
-            ~/buildflow
-          </Link>
-          <span className="shrink-0 font-mono text-xs text-neutral-700">/</span>
-          <h1 className="truncate font-mono text-sm font-semibold text-neutral-100">
-            {projectState.name}
-          </h1>
+      <header className="workspace-header">
+        <div className="workspace-header__top">
+          <div className="workspace-header__identity">
+            <BuildflowLogo surface="nav" className="shrink-0" />
+            <Link href="/projects" className="workspace-header__breadcrumb">
+              ~/buildflow
+            </Link>
+            <span className="workspace-header__separator" aria-hidden="true">/</span>
+            <h1 className="workspace-header__title" title={projectState.name}>
+              {projectState.name}
+            </h1>
+          </div>
+
+          <div className="workspace-header__actions" role="group" aria-label="Workspace tools">
+            <Link href="/prompts" className="workspace-shortcut" title="Prompt vault" aria-label="Prompt vault">
+              <svg aria-hidden="true" viewBox="0 0 20 20" fill="none"><path d="M5.25 2.75h6l3.5 3.5v10.5H5.25V2.75Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/><path d="M11.25 2.9v3.6h3.5M7.75 10h4.5M7.75 13h4.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
+              <span>Vault</span>
+            </Link>
+            <Link href="/companions" className="workspace-shortcut" title="Companions" aria-label="Companions">
+              <svg aria-hidden="true" viewBox="0 0 20 20" fill="none"><path d="M10 2.5 11.7 7l4.55 1.75-4.55 1.7L10 15l-1.7-4.55L3.75 8.75 8.3 7 10 2.5Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/><path d="m15.5 13 .75 1.75L18 15.5l-1.75.75L15.5 18l-.75-1.75L13 15.5l1.75-.75L15.5 13Z" fill="currentColor"/></svg>
+              <span>Companions</span>
+            </Link>
+            <Link href="/office-chat" className="workspace-shortcut" title="Team chat" aria-label="Team chat">
+              <svg aria-hidden="true" viewBox="0 0 20 20" fill="none"><path d="M3 4.25h14v9.5H9l-4.5 3v-3H3v-9.5Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/><path d="M6.25 8h7.5M6.25 10.75h5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
+              <span>Team chat</span>
+            </Link>
+            <UserAvatarMenu
+              displayName={displayName}
+              avatarUrl={avatarUrl}
+              email={email ?? ""}
+              open={avatarMenuOpen}
+              onToggle={() => setAvatarMenuOpen((v) => !v)}
+              onClose={() => setAvatarMenuOpen(false)}
+            />
+          </div>
         </div>
-        <nav className="flex max-w-[50vw] gap-0.5 overflow-x-auto rounded-md bg-white/5 p-1 sm:max-w-[60vw]" aria-label="Workspace sections">
+
+        <nav className="workspace-header__nav" aria-label="Workspace sections">
           <TabButton active={tab === "chat"} onClick={() => setTab("chat")}>
             Chat
           </TabButton>
@@ -118,32 +140,6 @@ export default function OfficeWorkspace({
             Config
           </TabButton>
         </nav>
-        <Link
-          href="/prompts"
-          className="font-mono text-xs text-neutral-500 hover:text-[var(--term-accent)]"
-        >
-          vault/
-        </Link>
-        <Link
-          href="/companions"
-          className="font-mono text-xs text-neutral-500 hover:text-[var(--term-accent)]"
-        >
-          sidekick/
-        </Link>
-        <Link
-          href="/office-chat"
-          className="font-mono text-xs text-neutral-500 hover:text-[var(--term-accent)]"
-        >
-          team-chat/
-        </Link>
-        <UserAvatarMenu
-          displayName={displayName}
-          avatarUrl={avatarUrl}
-          email={email ?? ""}
-          open={avatarMenuOpen}
-          onToggle={() => setAvatarMenuOpen((v) => !v)}
-          onClose={() => setAvatarMenuOpen(false)}
-        />
       </header>
 
       <main className="min-h-0 flex-1 overflow-y-auto">
@@ -241,11 +237,10 @@ function TabButton({
   return (
     <button
       onClick={onClick}
-      className={`shrink-0 whitespace-nowrap rounded px-3 py-1 text-xs font-medium transition-colors ${
-        active ? "bg-[var(--role-strategist)] text-white" : "text-neutral-400 hover:text-neutral-200"
-      }`}
+      aria-pressed={active}
+      className={`workspace-tab${active ? " workspace-tab--active" : ""}`}
     >
-       {children}
+      {children}
     </button>
   );
 }
@@ -272,6 +267,7 @@ function UserAvatarMenu({
       .slice(0, 2)
       .map((s) => s[0]?.toUpperCase())
       .join("") || "U";
+  const [failedAvatarUrl, setFailedAvatarUrl] = useState<string | null>(null);
 
   return (
     <div className="relative shrink-0">
@@ -281,13 +277,14 @@ function UserAvatarMenu({
         aria-expanded={open}
         className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-800 text-xs font-bold text-neutral-200 hover:bg-neutral-700 focus:outline-2 focus:outline-offset-2 focus:outline-[var(--role-strategist)]"
       >
-        {avatarUrl ? (
+        {avatarUrl && failedAvatarUrl !== avatarUrl ? (
           <Image
             src={avatarUrl}
             alt={displayName || "Your avatar"}
             width={32}
             height={32}
             className="h-full w-full rounded-full object-cover"
+            onError={() => setFailedAvatarUrl(avatarUrl)}
           />
         ) : (
           initials
