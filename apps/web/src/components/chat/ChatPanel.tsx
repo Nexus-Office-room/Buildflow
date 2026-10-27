@@ -206,23 +206,23 @@ export default function ChatPanel({
   }
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="chat-panel flex h-full min-h-0 flex-col">
       {/* Addendum 14: terminal session header — process-style label above the
           transcript, reinforcing the console metaphor. */}
-      <div className="term-titlebar border-x-0 border-t-0 px-4">
-        <span className="term-dot" style={{ background: "#ff5f56" }} />
-        <span className="term-dot" style={{ background: "#ffbd2e" }} />
-        <span className="term-dot" style={{ background: "#27c93f" }} />
-        <span className="ml-1">office-chat — live session</span>
+      <div className="chat-session">
+        <span className="chat-session__lights" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+        </span>
+        <span>office-chat <span className="chat-session__divider">—</span> live session</span>
       </div>
-      <div className="flex-1 space-y-6 overflow-y-auto px-4 py-4">
+      <div className="chat-transcript flex-1 space-y-6 overflow-y-auto px-4 py-4">
         {runs.length === 0 && (
-          <div className="glass-panel rounded-lg p-6 text-center" data-tour="office-chat">
-            <p className="data-mono text-sm text-[var(--term-accent)] phosphor">
-              buildflow@studio:~$ awaiting first directive
-              <span className="cursor-block" />
-            </p>
-            <p className="mt-3 text-sm text-neutral-400">
+          <div className="chat-empty" data-tour="office-chat">
+            <p className="chat-empty__path data-mono">buildflow@studio <span>/</span> project chat</p>
+            <h2>Describe what you want to build.</h2>
+            <p>
               Say something to your team. Simple questions get a direct answer from the
               Strategist; anything requiring real work runs the full 5-role pipeline.
             </p>
@@ -232,7 +232,7 @@ export default function ChatPanel({
         {runs.map((run) => (
           <div key={run.id} className="space-y-3">
             <div className="flex justify-end">
-              <div className="max-w-[80%] rounded-lg rounded-tr-none bg-red-600 px-3 py-2 text-sm text-white">
+              <div className="chat-user-message max-w-[80%] text-sm text-white">
                 {run.user_message}
               </div>
             </div>
@@ -278,11 +278,11 @@ export default function ChatPanel({
       </div>
 
       {pending && roleEvent && (
-        <p className="px-4 pb-1 text-xs text-neutral-500">{roleEvent}</p>
+        <p className="chat-live-event px-4 pb-1 text-xs text-neutral-500" role="status">{roleEvent}</p>
       )}
 
       {limitInfo && (
-        <div className="mx-4 mb-1 rounded-lg border border-amber-800/60 bg-amber-950/30 p-3 text-xs">
+        <div className="chat-limit mx-4 mb-2 rounded-lg border border-amber-800/60 bg-amber-950/30 p-3 text-xs">
           <p className="font-medium text-amber-300">
             Free shared-AI limit reached{limitInfo.limit ? ` (${limitInfo.used}/${limitInfo.limit} runs this month)` : ""}.
           </p>
@@ -303,97 +303,111 @@ export default function ChatPanel({
         </div>
       )}
 
-      {error && <p className="px-4 pb-1 text-xs text-red-400">{error}</p>}
+      {error && <p className="chat-error px-4 pb-1 text-xs text-red-400" role="alert">{error}</p>}
 
-      <form onSubmit={handleSubmit} className="glass-panel border-x-0 border-b-0 p-3">
-        <div className="mb-2">
-          <button
-            type="button"
-            aria-expanded={showBuildBrief}
-            onClick={() => setShowBuildBrief((open) => !open)}
-            disabled={pending}
-            className="flex items-center gap-2 text-xs font-medium text-neutral-300 hover:text-white disabled:opacity-50"
-          >
-            <span aria-hidden="true">{showBuildBrief ? "▾" : "▸"}</span>
-            Build brief <span className="font-normal text-neutral-500">· add notes for each work area, Figma/docs links, or AI handoff context</span>
-          </button>
-          {showBuildBrief && (
-            <div className="mt-3 grid gap-2 sm:grid-cols-2">
-              {([
-                ["frontend", "Frontend", "Pages, components, behavior, accessibility…"],
-                ["backend", "Backend", "Routes, services, database, auth…"],
-                ["contracts", "API / Contracts", "Endpoints, request/response shapes, integrations…"],
-                ["uiux", "UI / UX", "Visual direction, layout, Figma handoff, interaction…"],
-              ] as const).map(([key, label, placeholder]) => (
-                <label key={key} className="block rounded-md border border-neutral-800 bg-neutral-950/70 p-2">
-                  <span className="mb-1 block font-mono text-[10px] uppercase tracking-wide text-neutral-400">{label}</span>
-                  <textarea
-                    value={buildBrief[key] ?? ""}
-                    onChange={(event) => setBuildBrief((brief) => ({ ...brief, [key]: event.target.value }))}
-                    placeholder={placeholder}
-                    rows={2}
-                    disabled={pending}
-                    className="w-full resize-y bg-transparent text-xs text-neutral-100 outline-none placeholder:text-neutral-600"
-                  />
-                </label>
-              ))}
-              <label className="block rounded-md border border-neutral-800 bg-neutral-950/70 p-2 sm:col-span-2">
-                <span className="mb-1 block font-mono text-[10px] uppercase tracking-wide text-neutral-400">References & tools</span>
-                <textarea
-                  value={buildBrief.references ?? ""}
-                  onChange={(event) => setBuildBrief((brief) => ({ ...brief, references: event.target.value }))}
-                  placeholder="Paste Figma, docs, or ChatGPT links and any relevant notes. Include the important details here if a link needs access."
-                  rows={2}
-                  disabled={pending}
-                  className="w-full resize-y bg-transparent text-xs text-neutral-100 outline-none placeholder:text-neutral-600"
-                />
-              </label>
-            </div>
-          )}
-        </div>
-        <div className="mb-2 flex items-center gap-1.5" role="group" aria-label="Workflow mode">
-          <span className="mr-1 font-mono text-[10px] uppercase tracking-wider text-neutral-500">Mode</span>
+      <form onSubmit={handleSubmit} className="chat-composer">
+        <div
+          id="buildflow-build-brief"
+          className="chat-context grid gap-2 sm:grid-cols-2"
+          hidden={!showBuildBrief}
+        >
           {([
-            ["plan", "Plan"],
-            ["build", "Build"],
-            ["debug", "Debug"],
-          ] as const).map(([mode, label]) => (
-            <button
-              key={mode}
-              type="button"
-              aria-pressed={workflowMode === mode}
-              disabled={pending}
-              onClick={() => setWorkflowMode(mode)}
-              className={`rounded px-2.5 py-1 font-mono text-[11px] transition ${workflowMode === mode ? "bg-emerald-300/15 text-emerald-200" : "text-neutral-500 hover:bg-white/5 hover:text-neutral-200"}`}
-            >
-              {label}
-            </button>
+            ["frontend", "Frontend", "Pages, components, behavior, accessibility…"],
+            ["backend", "Backend", "Routes, services, database, auth…"],
+            ["contracts", "API / Contracts", "Endpoints, request/response shapes, integrations…"],
+            ["uiux", "UI / UX", "Visual direction, layout, Figma handoff, interaction…"],
+          ] as const).map(([key, label, placeholder]) => (
+            <label key={key} className="block rounded-md border border-neutral-800 bg-neutral-950/70 p-2">
+              <span className="mb-1 block font-mono text-[10px] uppercase tracking-wide text-neutral-400">{label}</span>
+              <textarea
+                value={buildBrief[key] ?? ""}
+                onChange={(event) => setBuildBrief((brief) => ({ ...brief, [key]: event.target.value }))}
+                placeholder={placeholder}
+                rows={2}
+                disabled={pending}
+                className="chat-context__input w-full resize-y bg-transparent text-xs text-neutral-100 outline-none placeholder:text-neutral-500"
+              />
+            </label>
           ))}
-          <span className="ml-auto text-[10px] text-neutral-600">
-            {workflowMode === "plan" ? "Plan only · no file edits" : workflowMode === "debug" ? "Investigate · fix · explain" : "Implement · review · QA"}
-          </span>
+          <label className="block rounded-md border border-neutral-800 bg-neutral-950/70 p-2 sm:col-span-2">
+            <span className="mb-1 block font-mono text-[10px] uppercase tracking-wide text-neutral-400">References & tools</span>
+            <textarea
+              value={buildBrief.references ?? ""}
+              onChange={(event) => setBuildBrief((brief) => ({ ...brief, references: event.target.value }))}
+              placeholder="Paste Figma, docs, or ChatGPT links and any relevant notes. Include the important details here if a link needs access."
+              rows={2}
+              disabled={pending}
+              className="chat-context__input w-full resize-y bg-transparent text-xs text-neutral-100 outline-none placeholder:text-neutral-500"
+            />
+          </label>
         </div>
-        <div className="flex gap-2">
-        <div className="relative flex-1">
-          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 font-mono text-xs text-[var(--term-accent)]">
-            &gt;
-          </span>
+        <div className="chat-composer__card">
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Describe the mission…"
             disabled={pending}
             aria-label="Message the team"
-            className="w-full rounded-md border border-neutral-700 bg-neutral-900 py-2 pl-7 pr-3 text-sm text-neutral-100 outline-none focus:border-[var(--term-accent)] disabled:opacity-50"
+            className="chat-composer__input"
           />
-        </div>
-        <button
-          type="submit"
-          disabled={pending || !input.trim()}
-          className="btn-terminal data-mono rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-500 disabled:opacity-50"
-        >
-          {pending ? "RUNNING" : "EXEC"}
-        </button>
+
+          <div className="chat-composer__tools">
+            <div className="chat-composer__modes" role="group" aria-label="Workflow mode">
+              {([
+                ["plan", "Plan", "Plan only · no file edits"],
+                ["build", "Build", "Implement · review · QA"],
+                ["debug", "Debug", "Investigate · fix · explain"],
+              ] as const).map(([mode, label, description]) => (
+                <button
+                  key={mode}
+                  type="button"
+                  aria-pressed={workflowMode === mode}
+                  disabled={pending}
+                  title={description}
+                  onClick={() => setWorkflowMode(mode)}
+                  className={`chat-mode-button${workflowMode === mode ? " chat-mode-button--active" : ""}`}
+                >
+                  {label}
+                </button>
+              ))}
+              <span className="chat-composer__mode-hint" aria-live="polite">
+                {workflowMode === "plan" ? "Plan only · no file edits" : workflowMode === "debug" ? "Investigate · fix · explain" : "Implement · review · QA"}
+              </span>
+            </div>
+
+            <div className="chat-composer__right">
+              <span className="chat-composer__team">Buildflow team</span>
+              <button
+                type="button"
+                className="chat-composer__attach"
+                aria-label={showBuildBrief ? "Close build brief" : "Add build brief and references"}
+                aria-expanded={showBuildBrief}
+                aria-controls="buildflow-build-brief"
+                title="Build brief and references"
+                disabled={pending}
+                onClick={() => setShowBuildBrief((open) => !open)}
+              >
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+                  <path d="m8.5 12.5 6.8-6.8a4 4 0 0 1 5.7 5.7l-9.2 9.2a6 6 0 0 1-8.5-8.5l9.2-9.2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+              <button
+                type="submit"
+                disabled={pending || !input.trim()}
+                className="chat-composer__send"
+                aria-label={pending ? "Buildflow team is working" : "Send to Buildflow team"}
+                title={pending ? "Running" : "Run Buildflow team"}
+              >
+                {pending ? (
+                  <span className="chat-composer__spinner" aria-hidden="true" />
+                ) : (
+                  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 19V5m0 0L6.5 10.5M12 5l5.5 5.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                )}
+              </button>
+            </div>
+          </div>
         </div>
       </form>
     </div>
