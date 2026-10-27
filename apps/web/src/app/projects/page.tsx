@@ -27,60 +27,41 @@ export default async function ProjectsPage() {
     .order("created_at", { ascending: false });
 
   return (
-    <div className="min-h-screen px-6 py-10 text-neutral-100">
+    <div className="projects-shell min-h-screen px-6 py-10 text-neutral-100 sm:px-8">
       {/* Addendum 13: first-time walkthrough (auto-starts once, re-runnable
           via the floating "?" button the component always renders). */}
       <OnboardingTour autoStart />
-      <div className="mx-auto max-w-2xl">
-        {/* Addendum 14: boot line — console session header. */}
-        <div className="data-mono mb-6 flex items-center gap-2 text-xs text-neutral-600">
-          <span className="text-[var(--term-accent)] phosphor">buildflow@studio</span>
-          <span>:~/projects</span>
-          <span className="text-neutral-700">$</span>
-          <span>ls -la</span>
-        </div>
+      <div className="mx-auto max-w-5xl">
+        <header className="projects-header">
+          {/* Keep the terminal cue, but make it read as a deliberate location bar. */}
+          <div className="projects-bootline data-mono" aria-label="Current workspace location">
+            <span className="projects-bootline__dot" aria-hidden="true" />
+            <span className="projects-bootline__user">buildflow@studio</span>
+            <span className="projects-bootline__path">~/projects</span>
+            <span className="projects-bootline__command">$ ls -la</span>
+          </div>
 
-        <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <BuildflowLogo surface="nav" />
-            <h1 className="text-2xl font-semibold">Your Projects</h1>
+          <div className="projects-masthead">
+            <div className="projects-heading">
+              <BuildflowLogo surface="nav" />
+              <div>
+                <h1>Your Projects</h1>
+                <p>Connect a repository or jump back into your work.</p>
+              </div>
+            </div>
+
+            <nav className="projects-nav" aria-label="Workspace navigation">
+              <Link href="/pricing" className="projects-nav__upgrade">Upgrade to Pro</Link>
+              <Link href="/prompts" className="projects-nav__link">Vault</Link>
+              <Link href="/companions" className="projects-nav__link">Companions</Link>
+              <Link href="/office-chat" className="projects-nav__link">Team chat</Link>
+              <Link href="/account/profile" className="projects-nav__link">Account</Link>
+              <form action="/auth/signout" method="post">
+                <SignOutButton />
+              </form>
+            </nav>
           </div>
-          <div className="flex items-center gap-4">
-            <Link
-              href="/pricing"
-              className="data-mono text-xs text-red-400 hover:text-red-300"
-            >
-              upgrade→pro
-            </Link>
-            <Link
-              href="/prompts"
-              className="data-mono text-xs text-neutral-400 hover:text-[var(--term-accent)]"
-            >
-              vault/
-            </Link>
-            <Link
-              href="/companions"
-              className="data-mono text-xs text-neutral-400 hover:text-[var(--term-accent)]"
-            >
-              companions/
-            </Link>
-            <Link
-              href="/office-chat"
-              className="data-mono text-xs text-neutral-400 hover:text-[var(--term-accent)]"
-            >
-              team-chat/
-            </Link>
-            <Link
-              href="/account/profile"
-              className="data-mono text-xs text-neutral-400 hover:text-[var(--term-accent)]"
-            >
-              account/
-            </Link>
-            <form action="/auth/signout" method="post">
-              <SignOutButton />
-            </form>
-          </div>
-        </div>
+        </header>
 
         {/* Addendum 13: GitHub repo/org picker is the only way to create a
             project now — in-app repo creation was removed. */}
@@ -131,10 +112,10 @@ export default async function ProjectsPage() {
 function SignOutButton() {
   return (
     <button
-      className="data-mono text-xs text-neutral-400 hover:text-[var(--role-ops)]"
+      className="projects-nav__signout"
       type="submit"
     >
-      logout
+      Sign out
     </button>
   );
 }

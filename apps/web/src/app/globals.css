@@ -165,6 +165,153 @@ body {
   letter-spacing: -0.01em;
 }
 
+/* Projects masthead: a calmer control surface over the existing terminal world. */
+.projects-header {
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--term-line);
+}
+
+.projects-bootline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 34px;
+  margin-bottom: 22px;
+  color: #9ca9bb;
+  font-size: 11px;
+}
+
+.projects-bootline__dot {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border-radius: 50%;
+  background: #3b82f6;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.48);
+}
+
+.projects-bootline__user { color: #7db3ff; }
+.projects-bootline__path { color: #bec6d2; }
+.projects-bootline__command { color: #7e8999; }
+
+.projects-masthead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  padding-bottom: 20px;
+}
+
+.projects-heading {
+  display: flex;
+  min-width: 250px;
+  align-items: center;
+  gap: 13px;
+}
+
+.projects-heading h1 {
+  margin: 0;
+  color: #f3f5f8;
+  font-size: clamp(1.8rem, 3vw, 2.35rem);
+  font-weight: 650;
+  letter-spacing: -0.035em;
+  line-height: 1.05;
+}
+
+.projects-heading p {
+  margin: 7px 0 0;
+  color: #abb6c5;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.projects-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.projects-nav__link,
+.projects-nav__upgrade,
+.projects-nav__signout {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 0 10px;
+  color: #c1cad6;
+  font-size: 12px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease;
+}
+
+.projects-nav__link:hover,
+.projects-nav__signout:hover {
+  border-color: rgba(255, 255, 255, 0.09);
+  background: rgba(255, 255, 255, 0.045);
+  color: #fff;
+}
+
+.projects-nav__link:focus-visible,
+.projects-nav__upgrade:focus-visible,
+.projects-nav__signout:focus-visible {
+  outline: 2px solid #6ea8ff;
+  outline-offset: 2px;
+}
+
+.projects-nav__upgrade {
+  margin-right: 4px;
+  border-color: rgba(248, 81, 81, 0.42);
+  background: rgba(248, 81, 81, 0.12);
+  color: #ff9a9a;
+}
+
+.projects-nav__upgrade:hover {
+  border-color: #f87171;
+  background: #ef4444;
+  color: #170a0a;
+}
+
+.projects-nav__signout {
+  min-height: 36px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+}
+
+@media (max-width: 760px) {
+  .projects-masthead {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .projects-heading { min-width: 0; }
+
+  .projects-nav {
+    width: 100%;
+    justify-content: flex-start;
+    gap: 3px;
+  }
+}
+
+@media (max-width: 420px) {
+  .projects-bootline { gap: 7px; font-size: 10px; }
+  .projects-heading { align-items: flex-start; }
+  .projects-heading h1 { font-size: 1.75rem; }
+  .projects-heading p { max-width: 29ch; }
+  .projects-nav__link,
+  .projects-nav__upgrade,
+  .projects-nav__signout { min-height: 34px; padding-inline: 8px; font-size: 11px; }
+}
+
 /* Pulsing glow ring around a role glyph while that role's call is in
    flight — the "activate" moment in the relay handoff. */
 @keyframes role-pulse {
