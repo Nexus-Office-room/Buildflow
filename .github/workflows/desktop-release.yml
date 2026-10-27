@@ -19,21 +19,21 @@ jobs:
           - name: Linux
             os: ubuntu-22.04
             args: "--bundles appimage,deb"
-            archive: Nexus-Office-Linux.zip
+            archive: Buildflow-Linux.zip
           - name: macOS Apple Silicon
             os: macos-latest
             target: aarch64-apple-darwin
             args: "--target aarch64-apple-darwin --bundles dmg"
-            archive: Nexus-Office-macOS-Apple-Silicon.zip
+            archive: Buildflow-macOS-Apple-Silicon.zip
           - name: macOS Intel
             os: macos-latest
             target: x86_64-apple-darwin
             args: "--target x86_64-apple-darwin --bundles dmg"
-            archive: Nexus-Office-macOS-Intel.zip
+            archive: Buildflow-macOS-Intel.zip
           - name: Windows
             os: windows-latest
             args: "--bundles msi,nsis"
-            archive: Nexus-Office-Windows.zip
+            archive: Buildflow-Windows.zip
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -53,7 +53,7 @@ jobs:
       - name: Install JavaScript workspaces
         run: npm ci
       - name: Generate app icons
-        run: npm run tauri --workspace @nexus-office/desktop icon ../web/public/brand/icon-512.png
+        run: npm run tauri --workspace @buildflow/desktop icon ../web/public/brand/icon-512.png
       - name: Build and publish installers
         uses: tauri-apps/tauri-action@v1
         env:
@@ -62,7 +62,7 @@ jobs:
         with:
           projectPath: apps/desktop
           owner: Nexus-Office-room
-          repo: Nexus-Office-Downloads
+          repo: Buildflow-Downloads
           tagName: ${{ github.ref_name }}
           releaseName: "Buildflow Desktop ${{ github.ref_name }}"
           releaseBody: "Download the ZIP for your computer from the Buildflow website. The archives contain installers and installation instructions."
@@ -73,7 +73,7 @@ jobs:
       - name: Package Linux installers into a ZIP
         if: runner.os == 'Linux'
         run: |
-          echo 'Ubuntu/Debian: open the .deb package with your software installer, or run sudo apt install ./Nexus.Office_*.deb.' > "$RUNNER_TEMP/README.txt"
+          echo 'Ubuntu/Debian: open the .deb package with your software installer, or run sudo apt install ./Buildflow_*.deb.' > "$RUNNER_TEMP/README.txt"
           zip -j "$RUNNER_TEMP/${{ matrix.archive }}" "$RUNNER_TEMP/README.txt" apps/desktop/src-tauri/target/release/bundle/deb/*.deb
       - name: Package macOS installer into a ZIP
         if: runner.os == 'macOS'
@@ -92,10 +92,10 @@ jobs:
         if: runner.os != 'Windows'
         env:
           GH_TOKEN: ${{ secrets.DOWNLOADS_REPO_TOKEN }}
-        run: gh release upload "${{ github.ref_name }}" "$RUNNER_TEMP/${{ matrix.archive }}" --repo Nexus-Office-room/Nexus-Office-Downloads --clobber
+        run: gh release upload "${{ github.ref_name }}" "$RUNNER_TEMP/${{ matrix.archive }}" --repo Nexus-Office-room/Buildflow-Downloads --clobber
       - name: Upload Windows ZIP to downloads release
         if: runner.os == 'Windows'
         shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.DOWNLOADS_REPO_TOKEN }}
-        run: gh release upload "${{ github.ref_name }}" "$env:RUNNER_TEMP/${{ matrix.archive }}" --repo Nexus-Office-room/Nexus-Office-Downloads --clobber
+        run: gh release upload "${{ github.ref_name }}" "$env:RUNNER_TEMP/${{ matrix.archive }}" --repo Nexus-Office-room/Buildflow-Downloads --clobber

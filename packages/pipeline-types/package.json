@@ -1,7 +1,7 @@
 {
   "name": "@nexus/pipeline-types",
   "version": "0.1.0",
-  "description": "Shared TypeScript types for Nexus Office: projects, pipeline runs, roles, prompts, deploys.",
+  "description": "Shared TypeScript types for Buildflow: projects, pipeline runs, roles, prompts, deploys.",
   "license": "MIT",
   "type": "module",
   "main": "./src/index.ts",

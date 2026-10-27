@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useApprovalFlow } from "@/components/common/ApprovalDialog";
 import type { Integration, IntegrationType } from "@/types/db";
-import { createNexusClient } from "@nexus-office/api-client";
+import { createNexusClient } from "@buildflow/api-client";
 
 const nexus = createNexusClient();
 

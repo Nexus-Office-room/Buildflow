@@ -1,9 +1,9 @@
 # Reporting Security Issues
 
-If you believe you have found a security vulnerability in Nexus Office, please
+If you believe you have found a security vulnerability in Buildflow, please
 let us know right away — we'll investigate and do our best to fix it quickly.
 
-Email us at: security@nexusoffice.dev (set this as a real monitored address, or
+Email us at: security@buildflow.dev (set this as a real monitored address, or
 reuse the FEEDBACK_EMAIL address from Addendum 10 if you don't want a separate
 inbox yet)
 

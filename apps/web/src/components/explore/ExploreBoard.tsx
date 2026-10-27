@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { createNexusClient } from "@nexus-office/api-client";
+import { createNexusClient } from "@buildflow/api-client";
 import BuildflowLogo from "@/components/brand/BuildflowLogo";
 
 const nexus = createNexusClient();

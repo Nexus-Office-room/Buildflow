@@ -7,8 +7,10 @@
 // The watermark is ALWAYS injected at render/deploy time only — these helpers
 // never write into the user's files table, canvas content, or repo sources.
 
-export const NEXUS_LANDING_URL =
-  process.env.NEXT_PUBLIC_NEXUS_URL || "https://nexus-office-pi.vercel.app";
+export const BUILDFLOW_LANDING_URL =
+  process.env.NEXT_PUBLIC_BUILDFLOW_URL ||
+  process.env.NEXT_PUBLIC_NEXUS_URL ||
+  "https://nexus-office-pi.vercel.app";
 
 // sessionStorage key: dismissing the badge hides it for that browser session
 // only and never changes the project-level settings toggles.
@@ -39,12 +41,12 @@ export const WATERMARK_CSS = `
 
 // Landing URL used by both the React badge and the deployed-site snippet.
 // Absolute so it resolves from any deployed origin.
-const LOGO_URL = `${NEXUS_LANDING_URL.replace(/\/$/, "")}/logo.png`;
+const LOGO_URL = `${BUILDFLOW_LANDING_URL.replace(/\/$/, "")}/logo.png`;
 
 // Badge markup shared by the vanilla snippet (preview + deployed sites) and the
 // React <BuildflowWatermark /> component.
 export function watermarkMarkup(): string {
-  const href = NEXUS_LANDING_URL.replace(/"/g, "&quot;");
+  const href = BUILDFLOW_LANDING_URL.replace(/"/g, "&quot;");
   return (
     `<div data-nx-watermark class="nx-wm">` +
     `<a class="nx-wm-pill" href="${href}" target="_blank" rel="noopener noreferrer">` +

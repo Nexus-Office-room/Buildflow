@@ -1,8 +1,17 @@
 import { NextResponse } from "next/server";
 
-const RELEASE_BASE = "https://github.com/Nexus-Office-room/Nexus-Office-Downloads/releases/latest/download";
+const RELEASE_BASE = "https://github.com/Nexus-Office-room/Buildflow-Downloads/releases/latest/download";
 
 const archives: Record<string, string> = {
+  linux: "Buildflow-Linux.zip",
+  "macos-arm64": "Buildflow-macOS-Apple-Silicon.zip",
+  "macos-x64": "Buildflow-macOS-Intel.zip",
+  windows: "Buildflow-Windows.zip",
+};
+
+// Keep already-published 0.1.1 archives downloadable until the first Buildflow
+// desktop release has replaced them in the public downloads repository.
+const legacyArchives: Record<string, string> = {
   linux: "Nexus-Office-Linux.zip",
   "macos-arm64": "Nexus-Office-macOS-Apple-Silicon.zip",
   "macos-x64": "Nexus-Office-macOS-Intel.zip",
@@ -17,8 +26,16 @@ export async function GET(_request: Request, context: { params: Promise<{ target
   }
 
   // Proxy the public installer asset so download clicks remain on the Buildflow domain.
-  const url = `${RELEASE_BASE}/${encodeURIComponent(archive)}`;
-  const upstream = await fetch(url, { cache: "no-store", redirect: "follow" });
+  let upstream = await fetch(`${RELEASE_BASE}/${encodeURIComponent(archive)}`, {
+    cache: "no-store",
+    redirect: "follow",
+  });
+  if (!upstream.ok && legacyArchives[target]) {
+    upstream = await fetch(
+      `${RELEASE_BASE}/${encodeURIComponent(legacyArchives[target])}`,
+      { cache: "no-store", redirect: "follow" }
+    );
+  }
   if (!upstream.ok || !upstream.body) {
     return NextResponse.json({ error: "This download is temporarily unavailable." }, { status: 502 });
   }

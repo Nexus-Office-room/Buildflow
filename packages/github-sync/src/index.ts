@@ -1,4 +1,4 @@
-// @nexus/github-sync — GitHub read/write logic shared by the Nexus Office
+// @nexus/github-sync — GitHub read/write logic shared by the Buildflow
 // web app and CLI: the raw git-data-API client, the Prompt Vault storage
 // layer, and pure diff helpers. Supabase-dependent orchestration (3-way sync
 // planning, conflict resolution) stays in apps/web since it needs the user's

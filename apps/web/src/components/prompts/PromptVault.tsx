@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import BuildflowLogo from "@/components/brand/BuildflowLogo";
 import type { Prompt } from "@/types/db";
-import { createNexusClient } from "@nexus-office/api-client";
+import { createNexusClient } from "@buildflow/api-client";
 
 const nexus = createNexusClient();
 

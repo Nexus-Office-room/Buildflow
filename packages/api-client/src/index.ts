@@ -1,4 +1,4 @@
-// @nexus-office/api-client — entry point.
+// @buildflow/api-client — entry point.
 //
 // `createNexusClient({ baseUrl, token })` returns a client with every
 // domain method bound. Browser callers omit baseUrl (same-origin) and

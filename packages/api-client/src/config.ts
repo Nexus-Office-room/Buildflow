@@ -1,4 +1,4 @@
-// @nexus-office/api-client — typed client for the Nexus Office web API.
+// @buildflow/api-client — typed client for the Buildflow web API.
 // Zero Next.js dependencies: the exact same functions serve browser sessions
 // (apps/web, relative URLs + cookie auth) and the CLI (apps/cli, absolute
 // base URL + Bearer token auth).
@@ -6,7 +6,7 @@
 import type { PipelineRun, PipelineStep, Project } from "@nexus/pipeline-types";
 
 export interface NexusClientConfig {
-  /** Base URL of the Nexus Office web app. Default: same-origin. */
+  /** Base URL of the Buildflow web app. Default: same-origin. */
   baseUrl?: string;
   /** Supabase access token for non-browser callers (the CLI). */
   token?: string;

@@ -4,12 +4,12 @@ import * as readline from "node:readline";
 import { loadConfig, saveConfig, clearAuth } from "./config.js";
 import { loginBrowser, loginWithToken, loginWithApiToken } from "./auth.js";
 import { resolveProject, gitRemoteForCwd } from "./project.js";
-import { createNexusClient, ApiError } from "@nexus-office/api-client";
+import { createNexusClient, ApiError } from "@buildflow/api-client";
 import { listVaultPrompts, ensureVaultRepo, getAuthenticatedUser } from "@nexus/github-sync";
 
 
 // @buildflow/cli — the `buildflow` command (Addendum 17 Phase 3).
-// Built on @nexus-office/api-client + @nexus/github-sync from the monorepo,
+// Built on @buildflow/api-client + @nexus/github-sync from the monorepo,
 // so the CLI and web app share one implementation of pipeline calls,
 // merging, and GitHub sync.
 

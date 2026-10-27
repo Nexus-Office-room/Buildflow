@@ -1,4 +1,4 @@
--- Small team rooms for conversations shared by authenticated Nexus Office users.
+-- Small team rooms for conversations shared by authenticated Buildflow users.
 -- Room membership does not grant access to the owner's projects or API keys.
 
 create table if not exists office_rooms (

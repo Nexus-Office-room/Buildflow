@@ -1,6 +1,6 @@
 [package]
-name = "nexus-office-desktop"
-version = "0.1.1"
+name = "buildflow-desktop"
+version = "0.1.2"
 description = "Buildflow desktop application"
 authors = ["Buildflow"]
 edition = "2021"

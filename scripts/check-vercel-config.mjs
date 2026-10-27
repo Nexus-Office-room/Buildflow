@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Vercel deployment config guard for the Nexus Office monorepo.
+ * Vercel deployment config guard for the Buildflow monorepo.
  *
  * Fails when the Next.js app's location (apps/web) doesn't match what Vercel
  * will actually build — the misconfiguration that produced

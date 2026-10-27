@@ -6,7 +6,7 @@ import { ROLE_LABELS, ROLE_COLORS } from "@/lib/pipeline/roles";
 import { MODEL_CATALOG, PROVIDER_LABELS } from "@/lib/providers/catalog";
 import { DEFAULT_PROVIDER_CONFIG, type ProviderName } from "@/lib/providers";
 import { AI_PROVIDER_CHOICES, DIRECT_AI_PROVIDER_VALUES } from "@/lib/providers/connections";
-import { createNexusClient } from "@nexus-office/api-client";
+import { createNexusClient } from "@buildflow/api-client";
 import { useApprovalFlow } from "@/components/common/ApprovalDialog";
 import type { Integration } from "@/types/db";
 

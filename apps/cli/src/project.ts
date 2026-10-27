@@ -1,5 +1,5 @@
 import { execSync } from "node:child_process";
-import { listProjects, type ProjectSummary } from "@nexus-office/api-client";
+import { listProjects, type ProjectSummary } from "@buildflow/api-client";
 
 // Auto-detect the current project: read the current directory's git remote
 // URL and match it against the user's connected projects' github_repo.

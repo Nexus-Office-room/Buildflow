@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import BuildflowLogo from "@/components/brand/BuildflowLogo";
 import { createClient } from "@/lib/supabase/client";
-import { createNexusClient } from "@nexus-office/api-client";
+import { createNexusClient } from "@buildflow/api-client";
 
 const nexus = createNexusClient();
 

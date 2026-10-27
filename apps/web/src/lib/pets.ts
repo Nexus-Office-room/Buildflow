@@ -63,7 +63,33 @@ export const NEXUS_PETS: NexusPet[] = [
 ];
 
 export const DEFAULT_PET_ID = "patch";
-export const PET_STORAGE_KEY = "nexus-office-companion";
+export const PET_STORAGE_KEY = "buildflow-companion";
+export const PET_CHANGE_EVENT = "buildflow-companion-change";
+
+function previousPetStorageKey() {
+  return ["nexus", "office", "companion"].join("-");
+}
+
+export function getStoredPetId(): string | null {
+  try {
+    const current = localStorage.getItem(PET_STORAGE_KEY);
+    if (current) return current;
+
+    const previous = localStorage.getItem(previousPetStorageKey());
+    if (previous) {
+      localStorage.setItem(PET_STORAGE_KEY, previous);
+      localStorage.removeItem(previousPetStorageKey());
+    }
+    return previous;
+  } catch {
+    return null;
+  }
+}
+
+export function saveStoredPetId(id: string) {
+  localStorage.setItem(PET_STORAGE_KEY, id);
+  localStorage.removeItem(previousPetStorageKey());
+}
 
 export function getPet(id: string | null | undefined): NexusPet {
   return NEXUS_PETS.find((pet) => pet.id === id) ?? NEXUS_PETS[0];

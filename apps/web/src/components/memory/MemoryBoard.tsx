@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { Decision, OpenIssue, ProjectMemory } from "@/types/db";
 import { ROLE_COLORS, ROLE_LABELS } from "@/lib/pipeline/roles";
-import { createNexusClient } from "@nexus-office/api-client";
+import { createNexusClient } from "@buildflow/api-client";
 
 const nexus = createNexusClient();
 

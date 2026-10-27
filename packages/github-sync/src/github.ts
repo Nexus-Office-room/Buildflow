@@ -293,7 +293,7 @@ export async function getFileContentAtRef(
 // Prompt Vault (Addendum 13) — lives here so the CLI can reuse it.
 // ---------------------------------------------------------------------------
 
-export const VAULT_REPO_NAME = "nexus-office-prompt-vault";
+export const VAULT_REPO_NAME = "buildflow-prompt-vault";
 const VAULT_DIR = "prompts";
 
 export interface VaultPrompt {
@@ -377,7 +377,7 @@ export async function ensureVaultRepo(token: string, login: string): Promise<str
     body: JSON.stringify({
       name: VAULT_REPO_NAME,
       private: true,
-      description: "Nexus Office Prompt Vault — one JSON file per prompt.",
+      description: "Buildflow Prompt Vault — one JSON file per prompt.",
       auto_init: true,
     }),
   });

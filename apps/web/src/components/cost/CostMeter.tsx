@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { ROLES, type Role } from "@/types/db";
 import { ROLE_COLORS, ROLE_LABELS } from "@/lib/pipeline/roles";
 import { estimateCostUsd } from "@/lib/providers/catalog";
-import { createNexusClient } from "@nexus-office/api-client";
+import { createNexusClient } from "@buildflow/api-client";
 
 const nexus = createNexusClient();
 

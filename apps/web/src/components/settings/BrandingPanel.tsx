@@ -3,7 +3,7 @@
 import { useState } from "react";
 import BuildflowWatermark from "@/components/brand/BuildflowWatermark";
 import type { Project } from "@/types/db";
-import { createNexusClient } from "@nexus-office/api-client";
+import { createNexusClient } from "@buildflow/api-client";
 
 const nexus = createNexusClient();
 

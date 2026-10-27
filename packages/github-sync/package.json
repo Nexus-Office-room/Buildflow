@@ -1,7 +1,7 @@
 {
   "name": "@nexus/github-sync",
   "version": "0.1.0",
-  "description": "GitHub read/write logic for Nexus Office (web + CLI): commits, vault storage, diff helpers.",
+  "description": "GitHub read/write logic for Buildflow (web + CLI): commits, vault storage, diff helpers.",
   "license": "MIT",
   "type": "module",
   "main": "./src/index.ts",

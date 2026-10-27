@@ -15,7 +15,7 @@
     "@codebuff/sdk": "^0.10.7",
     "@google/generative-ai": "^0.24.1",
     "@monaco-editor/react": "^4.7.0",
-    "@nexus-office/api-client": "*",
+    "@buildflow/api-client": "*",
     "@nexus/github-sync": "*",
     "@nexus/pipeline-types": "*",
     "@supabase/ssr": "^0.12.7",

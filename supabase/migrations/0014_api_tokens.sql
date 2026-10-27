@@ -1,5 +1,5 @@
 -- ============================================================
--- Addendum 15 — Nexus Office API tokens (purely additive).
+-- Addendum 15 — Buildflow API tokens (purely additive).
 -- Lets users create `nxo_live_...` credentials for the Nexus CLI / API.
 -- Only a SHA-256 hash of each token is stored; the raw token exists solely
 -- in the create response (and the user's clipboard / CLI config).

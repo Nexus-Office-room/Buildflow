@@ -3,20 +3,26 @@
 import { useCallback, useSyncExternalStore, useState } from "react";
 import Link from "next/link";
 import BuildflowLogo from "@/components/brand/BuildflowLogo";
-import { DEFAULT_PET_ID, NEXUS_PETS, PET_STORAGE_KEY } from "@/lib/pets";
+import {
+  DEFAULT_PET_ID,
+  getStoredPetId,
+  NEXUS_PETS,
+  PET_CHANGE_EVENT,
+  saveStoredPetId,
+} from "@/lib/pets";
 
 export default function CompanionsPage() {
   const subscribe = useCallback((onStoreChange: () => void) => {
     window.addEventListener("storage", onStoreChange);
-    window.addEventListener("nexus-companion-change", onStoreChange);
+    window.addEventListener(PET_CHANGE_EVENT, onStoreChange);
     return () => {
       window.removeEventListener("storage", onStoreChange);
-      window.removeEventListener("nexus-companion-change", onStoreChange);
+      window.removeEventListener(PET_CHANGE_EVENT, onStoreChange);
     };
   }, []);
   const getSnapshot = useCallback(() => {
     try {
-      return localStorage.getItem(PET_STORAGE_KEY) ?? DEFAULT_PET_ID;
+      return getStoredPetId() ?? DEFAULT_PET_ID;
     } catch {
       return DEFAULT_PET_ID;
     }
@@ -27,8 +33,8 @@ export default function CompanionsPage() {
   function choose(id: string) {
     setSaved(false);
     try {
-      localStorage.setItem(PET_STORAGE_KEY, id);
-      window.dispatchEvent(new Event("nexus-companion-change"));
+      saveStoredPetId(id);
+      window.dispatchEvent(new Event(PET_CHANGE_EVENT));
       setSaved(true);
     } catch {
       setSaved(false);

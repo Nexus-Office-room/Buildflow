@@ -1,4 +1,4 @@
-// @nexus/pipeline-types — shared TypeScript types for every Nexus Office
+// @nexus/pipeline-types — shared TypeScript types for every Buildflow
 // surface (web app, CLI, future surfaces). Zero runtime dependencies so it
 // can be imported from any package without pulling in the server stack.
 

@@ -1,4 +1,4 @@
--- Nexus Office initial schema
+-- Buildflow initial schema
 -- MVP tables: projects, project_memory, pipeline_runs, pipeline_steps, files
 -- v2 tables (created now, unused until v2 features ship): role_models, prompts, deploys
 

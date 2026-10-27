@@ -1,4 +1,4 @@
-# Nexus Office — End-to-End Test Checklist
+# Buildflow — End-to-End Test Checklist
 
 Manual checklist for the full user flow. **Run this by hand after each major
 addendum.** Do not automate these into a test suite yet — this is a human pass
@@ -149,7 +149,7 @@ Settings → General → Root Directory) or via the API. **A `vercel.json`
 cannot set Root Directory.** The committed `apps/web/vercel.json` (read
 *only after* the dashboard Root Directory points at `apps/web`) makes
 the install step run `cd ../.. && npm ci` from the repo root so npm
-workspaces link `@nexus-office/*` and `@nexus/*` before `next build`.
+workspaces link `@buildflow/*` and `@nexus/*` before `next build`.
 
 **Actual root cause of the three failed deploys after Addendum 17**
 (commits `113531a`, `e1ddfcf`, and their re-deploy): the dashboard
@@ -224,14 +224,14 @@ GitHub Actions secrets. Never paste tokens into chat or commit them.
 ### Production domain: use `nexus-office-pi.vercel.app`
 
 The canonical production URL is **https://nexus-office-pi.vercel.app**
-(project `nexus-office`, `prj_Otwd27uVSYGB2vukQD9zJzOQYAEt`). The bare
-`nexus-office.vercel.app` subdomain is **not ours**: it is held by an
+(project `buildflow`, `prj_Otwd27uVSYGB2vukQD9zJzOQYAEt`). The bare
+`buildflow.vercel.app` subdomain is **not ours**: it is held by an
 unrelated static-editor project on a different Vercel account, which is
 also why this project got the `-pi` suffix at creation time. Adding the
 name via `POST /v9/projects/{id}/domains` returns HTTP 409
 `owned-on-other-team` — only the owning account (deleting its project)
 or Vercel support can release it. Never point checks, the CLI, or docs
-at `nexus-office.vercel.app`; it serves someone else's stale page and
+at `buildflow.vercel.app`; it serves someone else's stale page and
 all `/api/*` routes 404 there.
 
 **Deployment-blocker rule:** Vercel refuses production deployments whose

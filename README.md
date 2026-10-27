@@ -12,7 +12,7 @@ apps/
 packages/
   pipeline-types/      # shared TypeScript types (zero runtime deps)
   github-sync/         # GitHub commit/vault/diff logic shared by web + CLI
-  api-client/          # @nexus-office/api-client — typed client for the web API
+  api-client/          # @buildflow/api-client — typed client for the web API
 supabase/              # migrations (run in filename order)
 ```
 

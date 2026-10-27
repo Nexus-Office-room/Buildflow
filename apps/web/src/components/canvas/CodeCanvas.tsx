@@ -4,13 +4,13 @@ import { useEffect, useMemo, useState } from "react";
 import Editor from "@monaco-editor/react";
 import { injectWatermark } from "@/lib/brand";
 import type { ProjectFile } from "@/types/db";
-import { createNexusClient } from "@nexus-office/api-client";
+import { createNexusClient } from "@buildflow/api-client";
 
 const fileCache = new Map<string, { files: ProjectFile[]; timestamp: number }>();
 const CACHE_TTL = 15_000;
 
 // Same-origin shared client — file CRUD + undo go through
-// @nexus-office/api-client instead of raw fetch.
+// @buildflow/api-client instead of raw fetch.
 const nexus = createNexusClient();
 
 function languageForPath(path: string): string {

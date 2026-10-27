@@ -8,7 +8,7 @@
 // per-user via /api/me/onboarding.
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { createNexusClient } from "@nexus-office/api-client";
+import { createNexusClient } from "@buildflow/api-client";
 
 const nexus = createNexusClient();
 

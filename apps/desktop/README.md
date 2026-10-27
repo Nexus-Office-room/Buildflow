@@ -4,7 +4,7 @@ Buildflow Desktop is a native installable window for the production Buildflow we
 
 ## Build installers
 
-From the repository root, install the JavaScript workspaces, then run `npm run tauri --workspace @nexus-office/desktop icon ../web/public/brand/icon-512.png` to generate platform icons. The release workflow builds Linux AppImage and Debian packages, macOS DMGs for Apple Silicon and Intel, and Windows MSI/NSIS installers.
+From the repository root, install the JavaScript workspaces, then run `npm run tauri --workspace @buildflow/desktop icon ../web/public/brand/icon-512.png` to generate platform icons. The release workflow builds Linux AppImage and Debian packages, macOS DMGs for Apple Silicon and Intel, and Windows MSI/NSIS installers.
 
 Linux builds need WebKitGTK 4.1, GTK 3, librsvg, and appindicator development packages. macOS builds need Xcode Command Line Tools. Windows builds need the Microsoft C++ Build Tools and WebView2.
 

@@ -13,7 +13,7 @@ import {
 // Addendum 13 Phase 1: the Prompt Vault's GitHub-backed storage.
 //
 // Storage lives in @nexus/github-sync (shared with the CLI, which reads the
-// same `nexus-office-prompt-vault` repo via `nexus vault list` / `use`).
+// same `buildflow-prompt-vault` repo via `nexus vault list` / `use`).
 // This module keeps the web-specific glue: the cache-row mapper and the
 // legacy-markdown migration sweep that touches the Supabase prompts table.
 

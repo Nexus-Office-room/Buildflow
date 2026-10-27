@@ -6,11 +6,11 @@ import RoleMessage from "./RoleMessage";
 import RelayTrack from "./RelayTrack";
 import type { PipelineStep, Role } from "@/types/db";
 import { stripMemoryBlock, stripStrategistBlock, parseStrategistOutput } from "@/lib/pipeline/memory";
-import { createNexusClient, ApiError } from "@nexus-office/api-client";
-import type { PipelineBuildBrief } from "@nexus-office/api-client";
+import { createNexusClient, ApiError } from "@buildflow/api-client";
+import type { PipelineBuildBrief } from "@buildflow/api-client";
 
 // Same-origin client (cookie auth) — every request below goes through the
-// shared @nexus-office/api-client package instead of raw fetch.
+// shared @buildflow/api-client package instead of raw fetch.
 const nexus = createNexusClient();
 
 const SHORT_SEQUENCE: Role[] = ["strategist", "ops"];

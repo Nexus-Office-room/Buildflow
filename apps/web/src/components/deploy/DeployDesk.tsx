@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import SaveToGitHub from "./SaveToGitHub";
 import { useApprovalFlow } from "@/components/common/ApprovalDialog";
 import type { Deploy, DeployStatus, Integration, Project } from "@/types/db";
-import { createNexusClient } from "@nexus-office/api-client";
+import { createNexusClient } from "@buildflow/api-client";
 
 const nexus = createNexusClient();
 

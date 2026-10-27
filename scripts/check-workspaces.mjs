@@ -38,11 +38,11 @@ function checkPackage(dir, label) {
   }
 
   // A name that doesn't match the directory convention breaks the
-  // "@nexus-office/<dir>": "*" references consumers use. Only packages/
+  // "@buildflow/<dir>": "*" references consumers use. Only packages/
   // are convention-named; apps keep their historical ("web") names and are
   // referenced by path in root scripts, not by bare "*" specifiers.
   const dirName = label.split("/").pop();
-  if (label.startsWith("packages/") && pkg.name !== `@nexus-office/${dirName}` && pkg.name !== `@nexus/${dirName}`) {
+  if (label.startsWith("packages/") && pkg.name !== `@buildflow/${dirName}` && pkg.name !== `@nexus/${dirName}`) {
     warn(`${label}: package name "${pkg.name}" doesn't follow the <scope>/${dirName} convention`);
   }
 

@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Buildflow",
-  "version": "0.1.1",
-  "identifier": "com.nexusoffice.desktop",
+  "version": "0.1.2",
+  "identifier": "com.buildflow.desktop",
   "build": {
     "frontendDist": "https://nexus-office-pi.vercel.app/"
   },

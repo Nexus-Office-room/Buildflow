@@ -2,7 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useState, type CSSProperties } from "react";
-import { DEFAULT_PET_ID, getPet, PET_STORAGE_KEY, type NexusPet } from "@/lib/pets";
+import {
+  DEFAULT_PET_ID,
+  getPet,
+  getStoredPetId,
+  PET_CHANGE_EVENT,
+  type NexusPet,
+} from "@/lib/pets";
 
 export default function PatchCompanion() {
   const [open, setOpen] = useState(false);
@@ -11,17 +17,17 @@ export default function PatchCompanion() {
   useEffect(() => {
     const syncPet = () => {
       try {
-        setPet(getPet(localStorage.getItem(PET_STORAGE_KEY)));
+        setPet(getPet(getStoredPetId()));
       } catch {
         setPet(getPet(DEFAULT_PET_ID));
       }
     };
     syncPet();
     window.addEventListener("storage", syncPet);
-    window.addEventListener("nexus-companion-change", syncPet);
+    window.addEventListener(PET_CHANGE_EVENT, syncPet);
     return () => {
       window.removeEventListener("storage", syncPet);
-      window.removeEventListener("nexus-companion-change", syncPet);
+      window.removeEventListener(PET_CHANGE_EVENT, syncPet);
     };
   }, []);
 

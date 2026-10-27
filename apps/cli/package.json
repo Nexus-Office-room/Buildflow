@@ -24,7 +24,7 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "@nexus-office/api-client": "*",
+    "@buildflow/api-client": "*",
     "@nexus/github-sync": "*",
     "@nexus/pipeline-types": "*",
     "commander": "^14.0.0",

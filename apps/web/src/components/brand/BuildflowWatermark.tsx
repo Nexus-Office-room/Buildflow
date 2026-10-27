@@ -3,7 +3,7 @@
 import { useCallback, useSyncExternalStore } from "react";
 import BuildflowLogo from "@/components/brand/BuildflowLogo";
 import {
-  NEXUS_LANDING_URL,
+  BUILDFLOW_LANDING_URL,
   WATERMARK_DISMISS_KEY,
   WATERMARK_GRADIENT,
 } from "@/lib/brand";
@@ -59,7 +59,7 @@ export default function BuildflowWatermark() {
       style={{ fontFamily: 'ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif' }}
     >
       <a
-        href={NEXUS_LANDING_URL}
+        href={BUILDFLOW_LANDING_URL}
         target="_blank"
         rel="noopener noreferrer"
         className="flex h-[30px] items-center gap-[7px] rounded-full border-0 py-0 pl-[5px] pr-[9px] no-underline shadow-[0_4px_16px_rgba(0,0,0,0.35)]"

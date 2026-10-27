@@ -19,7 +19,9 @@ const geistMono = Geist_Mono({
 // `npm run assets` (scripts/generate-brand-assets.mjs).
 export const metadata: Metadata = {
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_NEXUS_URL || "https://nexus-office-pi.vercel.app"
+    process.env.NEXT_PUBLIC_BUILDFLOW_URL ||
+    process.env.NEXT_PUBLIC_NEXUS_URL ||
+    "https://nexus-office-pi.vercel.app"
   ),
   title: {
     default: "Buildflow",
