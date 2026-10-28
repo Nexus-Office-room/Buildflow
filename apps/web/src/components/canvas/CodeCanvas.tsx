@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import Editor from "@monaco-editor/react";
 import { injectWatermark } from "@/lib/brand";
 import type { ProjectFile } from "@/types/db";
@@ -129,14 +130,14 @@ export default function CodeCanvas({
   return (
     <div className="flex h-full">
       {/* File tree */}
-      <div className="w-56 shrink-0 overflow-y-auto border-r border-neutral-800 bg-neutral-950 p-2">
-        <div className="mb-2 flex items-center justify-between px-1">
-          <span className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+      <aside className="canvas-sidebar w-56 shrink-0 overflow-y-auto p-2">
+        <div className="canvas-sidebar__heading mb-2 flex items-center justify-between px-1">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-400">
             Files
           </span>
           <button
             onClick={refreshFiles}
-            className="text-[11px] text-neutral-500 hover:text-neutral-300"
+            className="canvas-refresh text-[11px] text-neutral-400 hover:text-white"
           >
             Refresh
           </button>
@@ -147,17 +148,17 @@ export default function CodeCanvas({
         <button
           onClick={handleUndoLastRun}
           disabled={undoing}
-          className="mb-2 w-full rounded border border-neutral-800 px-2 py-1.5 text-[11px] text-neutral-400 hover:border-neutral-700 hover:text-neutral-200 disabled:opacity-50"
+          className="canvas-undo mb-2 w-full rounded px-2 py-1.5 text-[11px] text-neutral-300 disabled:opacity-50"
           title="Revert the most recent pipeline run's changes to their pre-run state"
         >
-          {undoing ? "Undoing…" : "↩ Undo last run"}
+          <span aria-hidden="true" className="mr-1.5">↶</span>{undoing ? "Undoing…" : "Undo last run"}
         </button>
         {undoMessage && (
           <p className="mb-2 px-1 text-[11px] text-neutral-500">{undoMessage}</p>
         )}
         {files.length === 0 && (
-          <p className="px-1 text-xs text-neutral-600">
-            No files yet — ask the Builder to create something in Office Chat.
+          <p className="canvas-sidebar__empty px-1 text-xs">
+            Your project files will appear here after the Builder creates them.
           </p>
         )}
         <ul className="space-y-0.5">
@@ -167,7 +168,7 @@ export default function CodeCanvas({
                 onClick={() => selectFile(f.path)}
                 className={`w-full truncate rounded px-2 py-1 text-left text-xs ${
                   f.path === selectedPath
-                    ? "bg-neutral-800 text-neutral-100"
+                    ? "canvas-file--active"
                     : "text-neutral-400 hover:bg-neutral-900 hover:text-neutral-200"
                 }`}
                 title={f.path}
@@ -177,25 +178,25 @@ export default function CodeCanvas({
             </li>
           ))}
         </ul>
-      </div>
+      </aside>
 
       {/* Editor */}
       <div className="flex min-w-0 flex-1 flex-col">
-        <div className="flex items-center justify-between border-b border-neutral-800 bg-neutral-900 px-3 py-1.5">
-          <span className="truncate text-xs text-neutral-400">
+        <div className="canvas-toolbar flex items-center justify-between px-3 py-1.5">
+          <span className="canvas-toolbar__path truncate text-xs text-neutral-300">
             {selected?.path ?? "No file selected"}
           </span>
           <div className="flex gap-2">
             <button
               onClick={() => setShowPreview((v) => !v)}
-              className="rounded bg-neutral-800 px-2 py-1 text-xs text-neutral-200 hover:bg-neutral-700"
+              className="canvas-toolbar__button rounded px-2.5 py-1.5 text-xs text-neutral-100"
             >
               {showPreview ? "Hide preview" : "Show preview"}
             </button>
             <button
               onClick={handleSave}
               disabled={!selected || saving}
-              className="rounded bg-red-600 px-2 py-1 text-xs font-medium text-white hover:bg-red-500 disabled:opacity-50"
+              className="canvas-toolbar__save rounded px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-45"
             >
               {saving ? "Saving…" : "Save"}
             </button>
@@ -215,8 +216,27 @@ export default function CodeCanvas({
                 options={{ minimap: { enabled: false }, fontSize: 13 }}
               />
             ) : (
-              <div className="flex h-full items-center justify-center text-sm text-neutral-600">
-                Select a file to edit
+              <div className="canvas-empty">
+                <div className="canvas-empty__mark" aria-hidden="true">
+                  <svg viewBox="0 0 48 48" fill="none">
+                    <path d="M14 7.5h13l9 9V39H14V7.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+                    <path d="M27 8v9h9M19 24h12M19 30h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                    <path d="m8 19 2 2 4-4" stroke="#6ea5ff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </div>
+                <p className="canvas-empty__eyebrow">Buildflow canvas</p>
+                <h2>{files.length ? "Choose a file to get started" : "Your canvas is ready"}</h2>
+                <p className="canvas-empty__copy">
+                  {files.length
+                    ? "Select a file from the project tree to inspect and edit its code."
+                    : "Start a build in Chat and your project files will appear here, ready to edit and preview."}
+                </p>
+                {!files.length && (
+                  <Link className="canvas-empty__action" href={`/projects/${projectId}`}>
+                    <span>Open project chat</span>
+                    <svg aria-hidden="true" viewBox="0 0 20 20" fill="none"><path d="M4 10h11m-4-4 4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  </Link>
+                )}
               </div>
             )}
           </div>
