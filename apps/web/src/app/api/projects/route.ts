@@ -4,6 +4,7 @@ import {
   requireScopeForRequest,
   apiTokenErrorResponse,
   scopedClient,
+  requireProjectWriteSession,
 } from "@/lib/requestIdentity";
 import { DEFAULT_PROVIDER_CONFIG } from "@/lib/providers";
 import { ROLES } from "@/types/db";
@@ -38,13 +39,8 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const auth = await getRequestIdentity(req);
   if ("response" in auth) return auth.response;
-  try {
-    requireScopeForRequest(auth.identity, "projects:read");
-  } catch (err) {
-    const safe = apiTokenErrorResponse(err);
-    if (safe) return safe;
-    throw err;
-  }
+  const writeError = requireProjectWriteSession(auth.identity);
+  if (writeError) return writeError;
   const userId = auth.identity.userId;
   const supabase = await scopedClient(auth.identity);
 
