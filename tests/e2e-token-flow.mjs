@@ -64,6 +64,7 @@ const SUPABASE_URL =
 const ANON_KEY =
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
   local?.ANON_KEY ??
+  local?.PUBLISHABLE_KEY ??
   fileEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const SERVICE_ROLE_KEY =
   process.env.SUPABASE_SERVICE_ROLE_KEY ??
@@ -76,8 +77,8 @@ if (process.env.NEXUS_E2E !== "1") {
   process.exit(0);
 }
 if (!SUPABASE_URL || !ANON_KEY) {
-  console.log("SKIP: no Supabase URL/anon key available (.env.local or `supabase start`).");
-  process.exit(0);
+  console.error("Missing Supabase URL/anon key (.env.local or `supabase start`).");
+  process.exit(1);
 }
 
 const PORT = 3977 + Math.floor(Math.random() * 100);
