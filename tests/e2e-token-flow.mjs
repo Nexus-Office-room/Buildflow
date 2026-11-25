@@ -41,13 +41,17 @@ function supabaseLocalEnv() {
       encoding: "utf8",
       timeout: 60_000,
     });
-    if (res.status !== 0) return null;
+    if (res.status !== 0) {
+      console.error(`Supabase status failed (exit ${res.status}): ${(res.stderr || "").slice(0, 500)}`);
+      return null;
+    }
     const env = {};
     for (const line of res.stdout.split("\n")) {
       const m = /^([A-Z0-9_]+)=(.*)$/.exec(line.trim());
       if (m) env[m[1]] = m[2].replace(/^"|"$/g, "");
     }
     if (env.API_URL && (env.SERVICE_ROLE_KEY || env.SECRET_KEY)) return env;
+    console.error(`Supabase status did not provide expected keys; available names: ${Object.keys(env).join(", ")}`);
     return null;
   } catch {
     return null;
