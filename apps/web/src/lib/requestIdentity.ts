@@ -74,7 +74,7 @@ export async function scopedClient(identity: RequestIdentity): Promise<SupabaseC
   return identity.token ? createAdminClient() : createClient();
 }
 
-export { assertProjectOwnership };
+export { assertProjectOwnership, requireProjectWriteSession } from "@/lib/requestScope";
 
 // Audit attribution (Phase 10): names the credential behind an action without
 // ever including the raw token, its hash, or the authorization header. Used as

@@ -46,7 +46,7 @@ function stubSupabase({ exists = true, error = null } = {}) {
 
 // Pull the real module through the alias loader. requestScope is kept free
 // of Next.js imports so it loads in plain Node.
-const { assertProjectOwnership } = await import("@/lib/requestScope");
+const { assertProjectOwnership, requireProjectWriteSession } = await import("@/lib/requestScope");
 
 describe("token-path request helpers", () => {
   const tokenIdentity = {
@@ -97,5 +97,18 @@ describe("CLI api-token format gate", () => {
   test("generated tokens always pass the structural check", async () => {
     const { token } = generateApiToken("live");
     assert.match(token, /^nxo_(live|test)_[A-Za-z0-9_-]{40,}$/);
+  });
+});
+
+
+describe("project write authorization", () => {
+  test("rejects API tokens even when they have the read scope", async () => {
+    const response = requireProjectWriteSession({ userId: "u1", email: null, token: { scopes: ["projects:read"] } });
+    assert.equal(response.status, 403);
+    assert.equal((await response.json()).error, "Project changes require a web session");
+  });
+
+  test("allows authenticated web sessions", () => {
+    assert.equal(requireProjectWriteSession({ userId: "u1", email: "u1@example.com" }), null);
   });
 });

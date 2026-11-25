@@ -202,8 +202,10 @@ machines and CI. Credentials live in `~/.nexus/config` (mode 0600).
 
 | Endpoint | Method | Scope |
 |---|---|---|
-| `/api/projects` | GET, POST | `projects:read` |
-| `/api/projects/{id}` | GET, PATCH | `projects:read` |
+| `/api/projects` | GET | `projects:read` |
+| `/api/projects` | POST | Web session only |
+| `/api/projects/{id}` | GET | `projects:read` |
+| `/api/projects/{id}` | PATCH | Web session only |
 | `/api/pipeline` | POST | `pipeline:run` |
 | `/api/projects/{id}/merge` | GET, POST | `pipeline:run` |
 | `/api/projects/{id}/merge-candidate` | GET | `projects:read` |
