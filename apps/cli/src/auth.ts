@@ -18,7 +18,7 @@ import { loadConfig, saveConfig, defaultBaseUrl } from "./config.js";
 // 3. Scoped API token (`buildflow login --api-token`): a Buildflow API token
 //    (nxo_live_... / nxo_test_...) minted at /account/api-keys. Unlike the
 //    full session token it carries only explicitly-granted scopes
-//    (projects:read, pipeline:run, vault:read, vault:write, deploy:trigger),
+//    (projects:read, projects:write, pipeline:run, vault:read, vault:write, deploy:trigger),
 //    is revocable, and the server stores only its SHA-256 hash. Best fit for
 //    shared machines and CI. Validated against the live API before storing.
 

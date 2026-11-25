@@ -27,6 +27,7 @@ const DIM = "\x1b[2m";
 // API_TOKEN_SCOPE_LABELS — the server stays the enforcement point).
 const SCOPE_LABELS: Record<string, string> = {
   "projects:read": "Read your projects (read-only)",
+  "projects:write": "Create and update your projects (write)",
   "pipeline:run": "Run the AI pipeline on a project (write)",
   "vault:read": "Read Prompt Vault entries (read-only)",
   "vault:write": "Create, update, and delete Prompt Vault entries (write)",

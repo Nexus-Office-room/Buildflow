@@ -154,6 +154,7 @@ what a token may do is governed by its scopes.
 | Scope | Grants |
 |---|---|
 | `projects:read` | List/get projects, read merge candidates, `buildflow whoami` |
+| `projects:write` | Create and update projects |
 | `pipeline:run` | Run the 5-role pipeline, merge/reject/undo run snapshots |
 | `vault:read` | Read Prompt Vault entries |
 | `vault:write` | Create, update, delete Prompt Vault entries |
@@ -198,14 +199,16 @@ buildflow whoami                         # shows credential kind + visible proje
 remain available; `--api-token` is the least-privilege option for shared
 machines and CI. Credentials live in `~/.nexus/config` (mode 0600).
 
+Existing API tokens do not gain `projects:write` automatically. Create a new token with that scope to create or update projects. Apply the database migration before deploying the application update.
+
 ### Endpoints and required scopes
 
 | Endpoint | Method | Scope |
 |---|---|---|
 | `/api/projects` | GET | `projects:read` |
-| `/api/projects` | POST | Web session only |
+| `/api/projects` | POST | `projects:write` |
 | `/api/projects/{id}` | GET | `projects:read` |
-| `/api/projects/{id}` | PATCH | Web session only |
+| `/api/projects/{id}` | PATCH | `projects:write` |
 | `/api/pipeline` | POST | `pipeline:run` |
 | `/api/projects/{id}/merge` | GET, POST | `pipeline:run` |
 | `/api/projects/{id}/merge-candidate` | GET | `projects:read` |

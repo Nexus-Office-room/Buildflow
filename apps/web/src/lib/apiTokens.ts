@@ -22,6 +22,7 @@ export const API_TOKEN_PREFIX = "nxo_";
 // selected at creation time (enforced in the create route and UI).
 export const API_TOKEN_SCOPES = [
   "projects:read",
+  "projects:write",
   "pipeline:run",
   "vault:read",
   "vault:write",
@@ -33,6 +34,7 @@ export type ApiTokenScope = (typeof API_TOKEN_SCOPES)[number];
 // Scope → required capability mapping for docs/UI copy.
 export const API_TOKEN_SCOPE_LABELS: Record<ApiTokenScope, string> = {
   "projects:read": "Read your projects (read-only)",
+  "projects:write": "Create and update your projects (write)",
   "pipeline:run": "Run the AI pipeline on a project (write)",
   "vault:read": "Read Prompt Vault entries (read-only)",
   "vault:write": "Create, update, and delete Prompt Vault entries (write)",
@@ -40,6 +42,7 @@ export const API_TOKEN_SCOPE_LABELS: Record<ApiTokenScope, string> = {
 };
 
 const WRITE_SCOPES: ReadonlySet<ApiTokenScope> = new Set([
+  "projects:write",
   "pipeline:run",
   "vault:write",
   "deploy:trigger",
