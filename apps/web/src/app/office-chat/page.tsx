@@ -99,7 +99,6 @@ export default function OfficeChatPage() {
 
   useEffect(() => {
     if (!activeRoomId) {
-      setMessagesError("");
       return;
     }
     let cancelled = false;
