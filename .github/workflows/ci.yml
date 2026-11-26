@@ -79,7 +79,7 @@ jobs:
       - name: Install dependencies (workspaces)
         run: npm ci
       - name: Start local Supabase + apply all migrations
-        run: npx supabase db start # applies every migration in supabase/migrations
+        run: npx supabase start # starts API/auth services and applies migrations
       - name: Run E2E token flow
         env:
           NEXUS_E2E: "1"

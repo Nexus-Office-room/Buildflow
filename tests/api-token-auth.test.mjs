@@ -204,12 +204,14 @@ describe("scope enforcement", () => {
     const c = ctx(["projects:read", "vault:write"]);
     assert.ok(hasScope(c, "projects:read"));
     assert.doesNotThrow(() => requireScope(c, "vault:write"));
+    assert.doesNotThrow(() => requireScope(ctx(["projects:write"]), "projects:write"));
   });
 
   test("requireScope throws ScopeError for a missing scope", () => {
     const c = ctx(["projects:read"]);
     assert.throws(() => requireScope(c, "deploy:trigger"), ScopeError);
     assert.throws(() => requireScope(c, "vault:write"), ScopeError);
+    assert.throws(() => requireScope(c, "projects:write"), ScopeError);
   });
 
   test("ScopeError maps to HTTP 403 with a safe message", async () => {

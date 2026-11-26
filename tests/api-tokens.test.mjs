@@ -91,11 +91,12 @@ test("isApiTokenFormat accepts well-formed tokens and rejects junk", () => {
 // ---------------------------------------------------------------------------
 // Scopes
 // ---------------------------------------------------------------------------
-test("scope catalog contains exactly the five specified scopes", () => {
+test("scope catalog contains exactly the six specified scopes", () => {
   assert.deepEqual([...API_TOKEN_SCOPES].sort(), [
     "deploy:trigger",
     "pipeline:run",
     "projects:read",
+    "projects:write",
     "vault:read",
     "vault:write",
   ]);

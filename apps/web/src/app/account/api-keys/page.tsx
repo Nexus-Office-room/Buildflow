@@ -30,6 +30,7 @@ interface TokenRow {
 // the API route remains the enforcement point — this only drives the UI).
 const SCOPES: ApiTokenScopeInfo[] = [
   { scope: "projects:read", label: "Read projects", write: false },
+  { scope: "projects:write", label: "Create and update projects", write: true },
   { scope: "pipeline:run", label: "Run the AI pipeline", write: true },
   { scope: "vault:read", label: "Read Prompt Vault", write: false },
   { scope: "vault:write", label: "Write Prompt Vault", write: true },

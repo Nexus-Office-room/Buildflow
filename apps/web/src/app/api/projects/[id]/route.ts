@@ -4,7 +4,6 @@ import {
   requireScopeForRequest,
   apiTokenErrorResponse,
   scopedClient,
-  requireProjectWriteSession,
   assertProjectOwnership,
 } from "@/lib/requestIdentity";
 
@@ -55,8 +54,13 @@ export async function PATCH(
   const { id } = await params;
   const auth = await getRequestIdentity(req);
   if ("response" in auth) return auth.response;
-  const writeError = requireProjectWriteSession(auth.identity);
-  if (writeError) return writeError;
+  try {
+    requireScopeForRequest(auth.identity, "projects:write");
+  } catch (err) {
+    const safe = apiTokenErrorResponse(err);
+    if (safe) return safe;
+    throw err;
+  }
   const supabase = await scopedClient(auth.identity);
   const ownershipError = await assertProjectOwnership(supabase, auth.identity, id);
   if (ownershipError) return ownershipError;

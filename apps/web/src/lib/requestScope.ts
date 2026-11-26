@@ -28,11 +28,3 @@ export async function assertProjectOwnership(
   }
   return null;
 }
-
-// Project write permissions are not yet available to API tokens.
-// A read-only token must never authorize project creation or updates.
-export function requireProjectWriteSession(identity: RequestIdentity): Response | null {
-  return identity.token
-    ? Response.json({ error: "Project changes require a web session" }, { status: 403 })
-    : null;
-}

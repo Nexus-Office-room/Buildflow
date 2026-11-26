@@ -41,13 +41,17 @@ function supabaseLocalEnv() {
       encoding: "utf8",
       timeout: 60_000,
     });
-    if (res.status !== 0) return null;
+    if (res.status !== 0) {
+      console.error(`Supabase status failed (exit ${res.status}): ${(res.stderr || "").slice(0, 500)}`);
+      return null;
+    }
     const env = {};
     for (const line of res.stdout.split("\n")) {
       const m = /^([A-Z0-9_]+)=(.*)$/.exec(line.trim());
       if (m) env[m[1]] = m[2].replace(/^"|"$/g, "");
     }
     if (env.API_URL && (env.SERVICE_ROLE_KEY || env.SECRET_KEY)) return env;
+    console.error(`Supabase status did not provide expected keys; available names: ${Object.keys(env).join(", ")}`);
     return null;
   } catch {
     return null;
@@ -64,6 +68,7 @@ const SUPABASE_URL =
 const ANON_KEY =
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
   local?.ANON_KEY ??
+  local?.PUBLISHABLE_KEY ??
   fileEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const SERVICE_ROLE_KEY =
   process.env.SUPABASE_SERVICE_ROLE_KEY ??
@@ -76,8 +81,8 @@ if (process.env.NEXUS_E2E !== "1") {
   process.exit(0);
 }
 if (!SUPABASE_URL || !ANON_KEY) {
-  console.log("SKIP: no Supabase URL/anon key available (.env.local or `supabase start`).");
-  process.exit(0);
+  console.error("Missing Supabase URL/anon key (.env.local or `supabase start`).");
+  process.exit(1);
 }
 
 const PORT = 3977 + Math.floor(Math.random() * 100);
@@ -178,14 +183,34 @@ async function main() {
   const listBody = await listRes.json().catch(() => null);
   ok("projects array present", Array.isArray(listBody?.projects));
 
+  const deniedCreate = await api(
+    "/api/projects",
+    { method: "POST", body: JSON.stringify({ name: "denied" }) },
+    nxoToken
+  );
+  ok("read-only token cannot create projects", deniedCreate.status === 403, `got ${deniedCreate.status}`);
+
+  const writeTokenRes = await api(
+    "/api/account/api-tokens",
+    { method: "POST", body: JSON.stringify({ name: "e2e writer", scopes: ["projects:write"] }) },
+    supabaseToken
+  );
+  ok("write token created", writeTokenRes.status === 201, `got ${writeTokenRes.status}`);
+  const writeToken = (await writeTokenRes.json().catch(() => null))?.token;
   const createProject = await api(
     "/api/projects",
     { method: "POST", body: JSON.stringify({ name: "e2e-nxo-proj" }) },
-    nxoToken
+    writeToken
   );
-  ok("POST /api/projects 201", createProject.status === 201, `got ${createProject.status}`);
+  ok("write token creates project", createProject.status === 201, `got ${createProject.status}`);
   const projectId = (await createProject.json().catch(() => null))?.project?.id;
   ok("project id returned", typeof projectId === "string");
+  const deniedPatch = await api(`/api/projects/${projectId}`, { method: "PATCH", body: JSON.stringify({ github_repo: "example/denied" }) }, nxoToken);
+  ok("read-only token cannot update projects", deniedPatch.status === 403, `got ${deniedPatch.status}`);
+  const writePatch = await api(`/api/projects/${projectId}`, { method: "PATCH", body: JSON.stringify({ github_repo: "example/allowed" }) }, writeToken);
+  ok("write token updates own project", writePatch.status === 200, `got ${writePatch.status}`);
+  const deniedRead = await api("/api/projects", {}, writeToken);
+  ok("write scope does not grant read scope", deniedRead.status === 403, `got ${deniedRead.status}`);
 
   const who = await api("/api/me/display-name", {}, nxoToken);
   const whoBody = await who.json().catch(() => null);
@@ -242,7 +267,7 @@ async function main() {
 
   const create2 = await api(
     "/api/account/api-tokens",
-    { method: "POST", body: JSON.stringify({ name: "attacker probe", scopes: ["projects:read", "pipeline:run", "deploy:trigger"] }) },
+    { method: "POST", body: JSON.stringify({ name: "attacker probe", scopes: ["projects:read", "projects:write", "pipeline:run", "deploy:trigger"] }) },
     session2
   );
   const nxo2 = (await create2.json().catch(() => null))?.token;
@@ -257,6 +282,9 @@ async function main() {
   // Direct project access → 404, indistinguishable from nonexistent.
   const foreignGet = await api(`/api/projects/${projectId}`, {}, nxo2);
   ok("foreign project GET → 404", foreignGet.status === 404, `got ${foreignGet.status}`);
+
+  const foreignPatch = await api(`/api/projects/${projectId}`, { method: "PATCH", body: JSON.stringify({ github_repo: "example/foreign" }) }, nxo2);
+  ok("foreign project update → 404", foreignPatch.status === 404, `got ${foreignPatch.status}`);
 
   // Foreign pipeline run must be refused even with pipeline:run held.
   const foreignPipeline = await api(
