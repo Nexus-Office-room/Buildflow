@@ -34,6 +34,8 @@ export default function OfficeChatPage() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [roomsError, setRoomsError] = useState("");
+  const [messagesError, setMessagesError] = useState("");
   const [notice, setNotice] = useState("");
   const siteOrigin = useSyncExternalStore(subscribeToOrigin, getOriginSnapshot, getOriginServerSnapshot);
 
@@ -48,6 +50,7 @@ export default function OfficeChatPage() {
     const data = await response.json().catch(() => null);
     if (!response.ok) throw new Error(data?.error ?? "Could not load rooms.");
     const nextRooms = (data?.rooms ?? []) as Room[];
+    setRoomsError("");
     setRooms(nextRooms);
     setActiveRoomId((current) => nextRooms.some((room) => room.id === current) ? current : nextRooms[0]?.id ?? "");
     return nextRooms;
@@ -79,7 +82,7 @@ export default function OfficeChatPage() {
         }
         if (!cancelled) await loadRooms();
       } catch (err) {
-        if (!cancelled) setError(err instanceof Error ? err.message : "Could not load team chat.");
+        if (!cancelled) setRoomsError(err instanceof Error ? err.message : "Could not load team chat.");
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -96,6 +99,7 @@ export default function OfficeChatPage() {
 
   useEffect(() => {
     if (!activeRoomId) {
+      setMessagesError("");
       return;
     }
     let cancelled = false;
@@ -104,9 +108,12 @@ export default function OfficeChatPage() {
         const response = await fetch(`/api/office/rooms/${activeRoomId}/messages`, { cache: "no-store" });
         const data = await response.json().catch(() => null);
         if (!response.ok) throw new Error(data?.error ?? "Could not load messages.");
-        if (!cancelled) setMessagesByRoom((previous) => ({ ...previous, [activeRoomId]: data?.messages ?? [] }));
+        if (!cancelled) {
+          setMessagesError("");
+          setMessagesByRoom((previous) => ({ ...previous, [activeRoomId]: data?.messages ?? [] }));
+        }
       } catch (err) {
-        if (!cancelled) setError(err instanceof Error ? err.message : "Could not load messages.");
+        if (!cancelled) setMessagesError(err instanceof Error ? err.message : "Could not load messages.");
       }
     };
     void refresh();
@@ -202,7 +209,7 @@ export default function OfficeChatPage() {
           <p className="mt-2 max-w-2xl text-sm text-neutral-400">Create a room, share its invite link, and keep the team conversation in one place.</p>
         </div>
 
-        {error && <p role="alert" className="mb-3 rounded-lg border border-red-500/30 bg-red-950/30 px-3 py-2 text-sm text-red-300">{error}{error === "Unauthorized" && <> <Link className="underline" href="/login">Sign in</Link></>}</p>}
+        {[error, roomsError, messagesError].filter(Boolean).map((message, index) => <p key={`${index}-${message}`} role="alert" className="mb-3 rounded-lg border border-red-500/30 bg-red-950/30 px-3 py-2 text-sm text-red-300">{message}{message === "Unauthorized" && <> <Link className="underline" href="/login">Sign in</Link></>}</p>)}
         {notice && <p role="status" className="mb-3 text-sm text-emerald-300">{notice}</p>}
 
         <div className="grid min-h-[62vh] overflow-hidden rounded-2xl border border-white/10 bg-neutral-950/80 md:grid-cols-[280px_1fr]">
